@@ -27,6 +27,7 @@ import { useNavigate, useParams, useLocation } from "react-router-dom"
 import { usePatientStore, type Patient } from "@/store/use-patient-store"
 import { useTabStore } from "@/store/use-tabs"
 import { useToast } from "@/hooks/use-toast"
+import { FileText } from "lucide-react"
 
 const defaultEmergencyContact = {
   name: '',
@@ -43,6 +44,7 @@ export function EditPatient() {
   const updatePatient = usePatientStore((state) => state.updatePatient)
   const { updateTab } = useTabStore()
   const { toast } = useToast()
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState<Patient>({
     id: '',
     firstName: '',
@@ -98,14 +100,35 @@ export function EditPatient() {
     }))
   }
 
-  const handleSave = () => {
-    if (id) {
-      updatePatient(id, formData)
+  const handleSave = async () => {
+    try {
+      setIsSubmitting(true)
+      if (id) {
+        updatePatient(id, formData)
+        toast({
+          title: "Success",
+          description: (
+            <div className="flex flex-col gap-2">
+              <p>Patient information updated successfully</p>
+              {formData.ehrId && (
+                <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-mono text-sm">EHR ID: {formData.ehrId}</span>
+                </div>
+              )}
+            </div>
+          ),
+        })
+        navigate("/patients")
+      }
+    } catch {
       toast({
-        title: "Success",
-        description: "Patient information updated successfully",
+        title: "Error",
+        description: "Failed to update patient record. Please try again.",
+        variant: "destructive",
       })
-      navigate("/patients")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -123,10 +146,18 @@ export function EditPatient() {
           <p className="text-muted-foreground">
             Update patient information and medical history
           </p>
+          {formData.ehrId && (
+            <div className="flex items-center gap-2 mt-2 p-2 bg-muted rounded-md max-w-fit">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <span className="font-mono text-sm">EHR ID: {formData.ehrId}</span>
+            </div>
+          )}
         </div>
         <div className="flex gap-3">
           <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-          <Button onClick={handleSave}>Save Changes</Button>
+          <Button onClick={handleSave} disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : "Save Changes"}
+          </Button>
         </div>
       </div>
 

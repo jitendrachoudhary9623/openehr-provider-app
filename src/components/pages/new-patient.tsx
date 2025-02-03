@@ -14,6 +14,7 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { usePatientStore, type Patient } from "@/store/use-patient-store"
 import { useTabStore } from "@/store/use-tabs"
 import { useToast } from "@/hooks/use-toast"
+import { FileText } from "lucide-react"
 
 const defaultEmergencyContact = {
   name: '',
@@ -45,6 +46,7 @@ export function NewPatient() {
   const { updateTab } = useTabStore()
   const { toast } = useToast()
   const [formData, setFormData] = useState<Omit<Patient, "id">>(defaultPatient)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Update tab title when name changes
   useEffect(() => {
@@ -72,13 +74,36 @@ export function NewPatient() {
     }))
   }
 
-  const handleSubmit = () => {
-    addPatient(formData)
-    toast({
-      title: "Success",
-      description: "Patient added successfully",
-    })
-    navigate("/patients")
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true)
+      const id = await addPatient(formData)
+      const patient = usePatientStore.getState().getPatientById(id)
+      
+      toast({
+        title: "Success",
+        description: (
+          <div className="flex flex-col gap-2">
+            <p>Patient added successfully</p>
+            {patient?.ehrId && (
+              <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                <span className="font-mono text-sm">EHR ID: {patient.ehrId}</span>
+              </div>
+            )}
+          </div>
+        ),
+      })
+      navigate("/patients")
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to create patient record. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handleCancel = () => {
@@ -96,7 +121,9 @@ export function NewPatient() {
         </div>
         <div className="flex gap-3">
           <Button variant="outline" onClick={handleCancel}>Cancel</Button>
-          <Button onClick={handleSubmit}>Save Patient</Button>
+          <Button onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? "Creating..." : "Save Patient"}
+          </Button>
         </div>
       </div>
 

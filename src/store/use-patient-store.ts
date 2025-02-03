@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { createEhr } from '@/services/openehr'
 
 export interface Patient {
   id: string
@@ -21,11 +22,12 @@ export interface Patient {
     phone: string
     relationship: string
   }
+  ehrId?: string
 }
 
 interface PatientState {
   patients: Patient[]
-  addPatient: (patient: Omit<Patient, "id">) => void
+  addPatient: (patient: Omit<Patient, "id">) => Promise<string>
   updatePatient: (id: string, patient: Partial<Patient>) => void
   deletePatient: (id: string) => void
   getPatientById: (id: string) => Patient | undefined
@@ -35,12 +37,21 @@ export const usePatientStore = create<PatientState>()(
   persist(
     (set, get) => ({
       patients: [],
-      addPatient: (patient) => {
-        const id = crypto.randomUUID()
-        set((state) => ({
-          patients: [...state.patients, { ...patient, id }],
-        }))
-        return id
+      addPatient: async (patient) => {
+        try {
+          // Create EHR record first
+          const ehrResponse = await createEhr()
+          const ehrId = ehrResponse.ehr_id.value
+
+          const id = crypto.randomUUID()
+          set((state) => ({
+            patients: [...state.patients, { ...patient, id, ehrId }],
+          }))
+          return id
+        } catch (error) {
+          console.error('Failed to create EHR:', error)
+          throw error
+        }
       },
       updatePatient: (id, updatedPatient) => {
         set((state) => ({
@@ -66,7 +77,7 @@ export const usePatientStore = create<PatientState>()(
 
 // Add some sample data if the store is empty
 if (usePatientStore.getState().patients.length === 0) {
-  const samplePatients: Omit<Patient, "id">[] = [
+  const samplePatients: Omit<Patient, "id" | "ehrId">[] = [
     {
       firstName: "John",
       lastName: "Smith",
@@ -109,7 +120,12 @@ if (usePatientStore.getState().patients.length === 0) {
     }
   ]
 
-  samplePatients.forEach(patient => {
-    usePatientStore.getState().addPatient(patient)
+  // Create EHR records for sample patients
+  samplePatients.forEach(async (patient) => {
+    try {
+      await usePatientStore.getState().addPatient(patient)
+    } catch (error) {
+      console.error('Failed to create sample patient:', error)
+    }
   })
 }
