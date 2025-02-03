@@ -12,8 +12,29 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu"
-import { MoreHorizontal, ArrowUpDown, Users, UserCheck, Clock, Filter, Plus, ArrowUpRightFromSquare } from "lucide-react"
+import { 
+  MoreHorizontal, 
+  Users, 
+  Clock, 
+  Filter, 
+  Plus, 
+  ArrowUpRightFromSquare,
+  TrendingUp,
+  Calendar,
+  Activity,
+  Stethoscope,
+  UserCog,
+  FileText,
+  Search,
+  Archive,
+  ChevronDown
+} from "lucide-react"
 import { format } from "date-fns"
+import { Input } from "../ui/input"
+
+interface PatientListProps {
+  onAddPatient: () => void
+}
 
 interface Patient {
   id: string
@@ -84,7 +105,7 @@ const columns: ColumnDef<Patient>[] = [
           className="hover:bg-transparent"
         >
           Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ChevronDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
@@ -114,13 +135,25 @@ const columns: ColumnDef<Patient>[] = [
           className="hover:bg-transparent"
         >
           Condition
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ChevronDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
-    cell: ({ row }) => (
-      <span className="font-medium">{row.original.condition}</span>
-    ),
+    cell: ({ row }) => {
+      const condition = row.original.condition
+      return (
+        <div className="flex items-center gap-2">
+          <div className={`h-2 w-2 rounded-full ${
+            condition === "Diabetes" ? "bg-red-500/20" :
+            condition === "Hypertension" ? "bg-orange-500/20" :
+            condition === "Arthritis" ? "bg-blue-500/20" :
+            condition === "Asthma" ? "bg-purple-500/20" :
+            "bg-primary/20"
+          }`} />
+          <span className="font-medium">{condition}</span>
+        </div>
+      )
+    },
   },
   {
     accessorKey: "lastVisit",
@@ -132,7 +165,7 @@ const columns: ColumnDef<Patient>[] = [
           className="hover:bg-transparent"
         >
           Last Visit
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ChevronDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
@@ -153,7 +186,7 @@ const columns: ColumnDef<Patient>[] = [
           className="hover:bg-transparent"
         >
           Status
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ChevronDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
@@ -161,13 +194,13 @@ const columns: ColumnDef<Patient>[] = [
       const status = row.original.status
       return (
         <Badge
-          className={
+          className={`px-2 py-0.5 ${
             status === "Active"
-              ? "bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-800/30"
+              ? "bg-green-50 text-green-700 dark:bg-green-500/20 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-500/20"
               : status === "Pending"
-              ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-800/30 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-800/30"
-              : "bg-gray-100 text-gray-800 dark:bg-gray-800/30 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800/30"
-          }
+              ? "bg-yellow-50 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400 hover:bg-yellow-50 dark:hover:bg-yellow-500/20"
+              : "bg-gray-50 text-gray-700 dark:bg-gray-500/20 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-500/20"
+          }`}
         >
           <div className="flex items-center gap-1">
             <div className={`h-1.5 w-1.5 rounded-full ${
@@ -185,7 +218,8 @@ const columns: ColumnDef<Patient>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => {
+    header: "Actions",
+    cell: () => {
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -200,15 +234,17 @@ const columns: ColumnDef<Patient>[] = [
               <ArrowUpRightFromSquare className="h-4 w-4" />
               View Profile
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(row.original.id)}
-              className="gap-2"
-            >
-              <Clock className="h-4 w-4" />
+            <DropdownMenuItem className="gap-2">
+              <Calendar className="h-4 w-4" />
               Schedule Visit
             </DropdownMenuItem>
+            <DropdownMenuItem className="gap-2">
+              <FileText className="h-4 w-4" />
+              View Records
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400 gap-2">
+            <DropdownMenuItem className="gap-2 text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400">
+              <Archive className="h-4 w-4" />
               Archive Patient
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -218,68 +254,125 @@ const columns: ColumnDef<Patient>[] = [
   },
 ]
 
-export function PatientList() {
+export function PatientList({ onAddPatient }: PatientListProps) {
   return (
     <div className="p-6 space-y-8">
-      {/* Header Section */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Patient Records</h1>
-          <p className="text-muted-foreground">
-            Manage and monitor your patient records efficiently
-          </p>
+      {/* Header Section with Quick Actions */}
+      <div className="flex flex-col gap-6">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Patient Records</h1>
+            <p className="text-muted-foreground">
+              Manage and monitor your patient records efficiently
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" className="gap-2 shadow-sm">
+              <Filter className="h-4 w-4" />
+              Filter
+            </Button>
+            <Button 
+              className="gap-2 shadow-sm bg-primary hover:bg-primary/90"
+              onClick={onAddPatient}
+            >
+              <Plus className="h-4 w-4" />
+              Add Patient
+            </Button>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="gap-2 shadow-sm">
-            <Filter className="h-4 w-4" />
-            Filter
-          </Button>
-          <Button className="gap-2 shadow-sm bg-primary hover:bg-primary/90">
-            <Plus className="h-4 w-4" />
-            Add Patient
-          </Button>
+
+        {/* Quick Action Buttons */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { icon: Calendar, label: "Schedule Visit", color: "text-blue-500" },
+            { icon: FileText, label: "New Prescription", color: "text-green-500" },
+            { icon: Stethoscope, label: "Start Checkup", color: "text-purple-500" },
+            { icon: UserCog, label: "Patient Settings", color: "text-orange-500" },
+          ].map((action, index) => (
+            <Button
+              key={index}
+              variant="outline"
+              className="h-auto py-4 px-4 flex flex-col items-center gap-2 hover:bg-muted/50 transition-colors"
+            >
+              <action.icon className={`h-5 w-5 ${action.color}`} />
+              <span className="text-sm font-medium">{action.label}</span>
+            </Button>
+          ))}
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Analytics Overview */}
       <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-xl border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
+        <div className="rounded-xl border bg-card p-6 shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
               <Users className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total Patients</p>
-              <p className="text-2xl font-bold">1,234</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-muted-foreground">Total Patients</p>
+                <Badge variant="secondary" className="text-xs">+12.5%</Badge>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-bold">1,234</p>
+                <TrendingUp className="h-4 w-4 text-green-500" />
+              </div>
             </div>
           </div>
         </div>
-        <div className="rounded-xl border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
+        <div className="rounded-xl border bg-card p-6 shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-800/30 flex items-center justify-center">
-              <UserCheck className="h-6 w-6 text-green-700 dark:text-green-400" />
+              <Activity className="h-6 w-6 text-green-700 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Active Patients</p>
-              <p className="text-2xl font-bold">892</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-muted-foreground">Active Patients</p>
+                <Badge variant="secondary" className="text-xs">+5.2%</Badge>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-bold">892</p>
+                <TrendingUp className="h-4 w-4 text-green-500" />
+              </div>
             </div>
           </div>
         </div>
-        <div className="rounded-xl border bg-card p-6 shadow-sm hover:shadow-md transition-shadow">
+        <div className="rounded-xl border bg-card p-6 shadow-sm hover:shadow-md transition-all">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-800/30 flex items-center justify-center">
               <Clock className="h-6 w-6 text-blue-700 dark:text-blue-400" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Recent Visits</p>
-              <p className="text-2xl font-bold">48</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-muted-foreground">Recent Visits</p>
+                <Badge variant="secondary" className="text-xs">Today</Badge>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <p className="text-2xl font-bold">48</p>
+                <span className="text-sm text-muted-foreground">visits</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Data Table */}
-      <div className="rounded-xl border bg-card shadow-sm">
+      {/* Enhanced Search and Table */}
+      <div className="rounded-xl border bg-card shadow-sm space-y-4">
+        <div className="p-4 border-b">
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Search patients..." 
+                className="pl-8 bg-muted/50 focus:bg-muted"
+              />
+            </div>
+            <Button variant="outline" size="sm" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Export
+            </Button>
+          </div>
+        </div>
         <DataTable columns={columns} data={data} />
       </div>
     </div>
