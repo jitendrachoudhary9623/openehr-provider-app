@@ -5,7 +5,6 @@ export interface Tab {
   id: string
   title: string
   path: string
-  icon?: string
 }
 
 interface TabState {
@@ -16,6 +15,7 @@ interface TabState {
   setActiveTab: (id: string) => void
   hasTab: (path: string) => boolean
   getTabById: (id: string) => Tab | undefined
+  updateTab: (id: string, updates: Partial<Tab>) => void
 }
 
 export const useTabStore = create<TabState>()(
@@ -23,19 +23,13 @@ export const useTabStore = create<TabState>()(
     (set, get) => ({
       tabs: [],
       activeTab: null,
-      addTab: (tab: Tab) => {
-        set((state) => {
-          // Don't add if tab with same path already exists
-          if (state.tabs.some((t) => t.path === tab.path)) {
-            return state
-          }
-          return {
-            tabs: [...state.tabs, tab],
-            activeTab: tab.id,
-          }
-        })
+      addTab: (tab) => {
+        set((state) => ({
+          tabs: [...state.tabs, tab],
+          activeTab: tab.id,
+        }))
       },
-      removeTab: (id: string) => {
+      removeTab: (id) => {
         set((state) => {
           const newTabs = state.tabs.filter((tab) => tab.id !== id)
           let newActiveTab = state.activeTab
@@ -51,14 +45,21 @@ export const useTabStore = create<TabState>()(
           }
         })
       },
-      setActiveTab: (id: string) => set({ activeTab: id }),
-      hasTab: (path: string) => {
+      setActiveTab: (id) => set({ activeTab: id }),
+      hasTab: (path) => {
         const state = get()
         return state.tabs.some((tab) => tab.path === path)
       },
-      getTabById: (id: string) => {
+      getTabById: (id) => {
         const state = get()
         return state.tabs.find((tab) => tab.id === id)
+      },
+      updateTab: (id, updates) => {
+        set((state) => ({
+          tabs: state.tabs.map((tab) =>
+            tab.id === id ? { ...tab, ...updates } : tab
+          ),
+        }))
       },
     }),
     {

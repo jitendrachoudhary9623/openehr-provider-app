@@ -9,9 +9,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { useNavigate, useLocation } from "react-router-dom"
 import { usePatientStore, type Patient } from "@/store/use-patient-store"
+import { useTabStore } from "@/store/use-tabs"
+import { useToast } from "@/hooks/use-toast"
 
 const defaultEmergencyContact = {
   name: '',
@@ -38,8 +40,20 @@ const defaultPatient: Omit<Patient, "id"> = {
 
 export function NewPatient() {
   const navigate = useNavigate()
+  const location = useLocation()
   const addPatient = usePatientStore((state) => state.addPatient)
+  const { updateTab } = useTabStore()
+  const { toast } = useToast()
   const [formData, setFormData] = useState<Omit<Patient, "id">>(defaultPatient)
+
+  // Update tab title when name changes
+  useEffect(() => {
+    const fullName = [formData.firstName, formData.lastName]
+      .filter(Boolean)
+      .join(" ")
+    const title = fullName ? `New Patient - ${fullName}` : "New Patient"
+    updateTab(location.pathname, { title })
+  }, [formData.firstName, formData.lastName, location.pathname, updateTab])
 
   const handleInputChange = (field: keyof Omit<Patient, "id">, value: string) => {
     setFormData(prev => ({
@@ -60,6 +74,10 @@ export function NewPatient() {
 
   const handleSubmit = () => {
     addPatient(formData)
+    toast({
+      title: "Success",
+      description: "Patient added successfully",
+    })
     navigate("/patients")
   }
 

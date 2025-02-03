@@ -23,8 +23,10 @@ import {
 } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import { useState, useEffect } from "react"
-import { useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams, useLocation } from "react-router-dom"
 import { usePatientStore, type Patient } from "@/store/use-patient-store"
+import { useTabStore } from "@/store/use-tabs"
+import { useToast } from "@/hooks/use-toast"
 
 const defaultEmergencyContact = {
   name: '',
@@ -35,9 +37,12 @@ const defaultEmergencyContact = {
 export function EditPatient() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [activeTab, setActiveTab] = useState("general")
   const getPatientById = usePatientStore((state) => state.getPatientById)
   const updatePatient = usePatientStore((state) => state.updatePatient)
+  const { updateTab } = useTabStore()
+  const { toast } = useToast()
   const [formData, setFormData] = useState<Patient>({
     id: '',
     firstName: '',
@@ -67,6 +72,15 @@ export function EditPatient() {
     }
   }, [id, getPatientById, navigate])
 
+  // Update tab title when name changes
+  useEffect(() => {
+    const fullName = [formData.firstName, formData.lastName]
+      .filter(Boolean)
+      .join(" ")
+    const title = fullName ? `Edit Patient - ${fullName}` : "Edit Patient"
+    updateTab(location.pathname, { title })
+  }, [formData.firstName, formData.lastName, location.pathname, updateTab])
+
   const handleInputChange = (field: keyof Patient, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -87,6 +101,10 @@ export function EditPatient() {
   const handleSave = () => {
     if (id) {
       updatePatient(id, formData)
+      toast({
+        title: "Success",
+        description: "Patient information updated successfully",
+      })
       navigate("/patients")
     }
   }
@@ -94,6 +112,8 @@ export function EditPatient() {
   const handleCancel = () => {
     navigate("/patients")
   }
+
+  if (!formData) return null
 
   return (
     <div className="p-6 space-y-6">

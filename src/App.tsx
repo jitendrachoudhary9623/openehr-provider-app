@@ -3,34 +3,17 @@ import { Input } from "./components/ui/input"
 import { Button } from "./components/ui/button"
 import { ThemeProvider } from "./components/theme-provider"
 import { Sidebar } from "./components/sidebar"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { X } from "lucide-react"
 import { useTabStore } from "./store/use-tabs"
-import { Outlet, useLocation, useNavigate } from "react-router-dom"
-import { routes } from "./lib/routes"
+import { Outlet, useNavigate } from "react-router-dom"
+import { Toaster } from "./components/ui/toaster"
 
 function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const location = useLocation()
+  const [sidebarOpen, setSidebarOpen] = useState(true)
   const navigate = useNavigate()
-  const { tabs, activeTab, addTab, removeTab, setActiveTab, hasTab } = useTabStore()
+  const { tabs, activeTab, removeTab, setActiveTab } = useTabStore()
 
-  // Initialize the first tab based on the current route
-  useEffect(() => {
-    const currentPath = location.pathname
-    const route = Object.values(routes).find(r => r.path === currentPath)
-    
-    if (route && !hasTab(currentPath)) {
-      const newTab = {
-        id: currentPath,
-        title: route.name,
-        path: currentPath,
-      }
-      addTab(newTab)
-    }
-  }, [location, addTab, hasTab])
-
-  // Handle tab changes
   const handleTabClick = (tabId: string) => {
     const tab = tabs.find(t => t.id === tabId)
     if (tab) {
@@ -39,8 +22,7 @@ function App() {
     }
   }
 
-  const handleCloseTab = (tabId: string, e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleCloseTab = (tabId: string) => {
     if (tabs.length === 1) return // Don't close the last tab
     
     const tab = tabs.find(t => t.id === tabId)
@@ -131,7 +113,10 @@ function App() {
                           variant="ghost"
                           size="icon"
                           className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => handleCloseTab(tab.id, e)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleCloseTab(tab.id)
+                          }}
                         >
                           <X className="h-3 w-3" />
                         </Button>
@@ -149,6 +134,7 @@ function App() {
           </div>
         </div>
       </div>
+      <Toaster />
     </ThemeProvider>
   )
 }
