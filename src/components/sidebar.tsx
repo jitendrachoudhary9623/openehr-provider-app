@@ -23,6 +23,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useState } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
+import { routes } from "@/lib/routes"
+import { useTabStore } from "@/store/use-tabs"
 
 interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
   onToggle?: (isOpen: boolean) => void
@@ -31,19 +34,33 @@ interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {
 export function Sidebar({ className, onToggle }: SidebarProps) {
   const { theme, setTheme } = useTheme()
   const [collapsed, setCollapsed] = useState(true)
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { addTab, hasTab } = useTabStore()
 
   const handleToggle = () => {
     setCollapsed(!collapsed)
     onToggle?.(collapsed)
   }
 
+  const handleNavigation = (path: string, name: string) => {
+    if (!hasTab(path)) {
+      addTab({
+        id: path,
+        title: name,
+        path: path,
+      })
+    }
+    navigate(path)
+  }
+
   const navigation = [
-    { name: "Dashboard", icon: Home, current: false },
-    { name: "Patients", icon: Users, current: true },
-    { name: "Appointments", icon: Calendar, current: false },
-    { name: "Medical Records", icon: FileText, current: false },
-    { name: "Prescriptions", icon: ClipboardList, current: false },
-    { name: "Analytics", icon: BarChart, current: false },
+    { name: "Dashboard", icon: Home, path: routes.dashboard.path },
+    { name: "Patients", icon: Users, path: routes.patients.path },
+    { name: "Appointments", icon: Calendar, path: routes.appointments.path },
+    { name: "Medical Records", icon: FileText, path: routes.medicalRecords.path },
+    { name: "Prescriptions", icon: ClipboardList, path: routes.prescriptions.path },
+    { name: "Analytics", icon: BarChart, path: routes.analytics.path },
   ]
 
   return (
@@ -72,17 +89,18 @@ export function Sidebar({ className, onToggle }: SidebarProps) {
         <nav className="space-y-1 px-2">
           {navigation.map((item) => (
             <Button
-              key={item.name}
-              variant={item.current ? "secondary" : "ghost"}
+              key={item.path}
+              variant={location.pathname === item.path ? "secondary" : "ghost"}
               className={cn(
                 "w-full justify-start gap-2 h-10",
-                item.current ? "bg-primary/10 hover:bg-primary/15" : "",
+                location.pathname === item.path ? "bg-primary/10 hover:bg-primary/15" : "",
                 collapsed ? "px-3" : "px-3"
               )}
+              onClick={() => handleNavigation(item.path, item.name)}
             >
               <item.icon className={cn(
                 "h-5 w-5",
-                item.current ? "text-primary" : "text-muted-foreground"
+                location.pathname === item.path ? "text-primary" : "text-muted-foreground"
               )} />
               <span className={cn(
                 "transition-opacity duration-300",

@@ -1,59 +1,149 @@
-"use client"
-
-import { Input } from "../ui/input"
-import { Button } from "../ui/button"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select"
-import { Label } from "../ui/label"
+} from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { usePatientStore, type Patient } from "@/store/use-patient-store"
+
+const defaultEmergencyContact = {
+  name: '',
+  phone: '',
+  relationship: ''
+}
+
+const defaultPatient: Omit<Patient, "id"> = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: '',
+  dob: '',
+  gender: '',
+  bloodGroup: '',
+  maritalStatus: '',
+  address: '',
+  medicalConditions: '',
+  medications: '',
+  allergies: '',
+  surgeries: '',
+  emergencyContact: defaultEmergencyContact
+}
 
 export function NewPatient() {
+  const navigate = useNavigate()
+  const addPatient = usePatientStore((state) => state.addPatient)
+  const [formData, setFormData] = useState<Omit<Patient, "id">>(defaultPatient)
+
+  const handleInputChange = (field: keyof Omit<Patient, "id">, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleEmergencyContactChange = (field: keyof typeof defaultEmergencyContact, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      emergencyContact: {
+        ...prev.emergencyContact,
+        [field]: value
+      }
+    }))
+  }
+
+  const handleSubmit = () => {
+    addPatient(formData)
+    navigate("/patients")
+  }
+
+  const handleCancel = () => {
+    navigate("/patients")
+  }
+
   return (
     <div className="p-6 space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">New Patient</h1>
-        <p className="text-muted-foreground">
-          Add a new patient to your records
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">New Patient</h1>
+          <p className="text-muted-foreground">
+            Add a new patient to your records
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+          <Button onClick={handleSubmit}>Save Patient</Button>
+        </div>
       </div>
 
       <div className="max-w-2xl space-y-6">
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="firstName">First Name</Label>
-            <Input id="firstName" placeholder="Enter first name" />
+            <Input 
+              id="firstName" 
+              placeholder="Enter first name"
+              value={formData.firstName}
+              onChange={(e) => handleInputChange('firstName', e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="lastName">Last Name</Label>
-            <Input id="lastName" placeholder="Enter last name" />
+            <Input 
+              id="lastName" 
+              placeholder="Enter last name"
+              value={formData.lastName}
+              onChange={(e) => handleInputChange('lastName', e.target.value)}
+            />
           </div>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="Enter email address" />
+          <Input 
+            id="email" 
+            type="email" 
+            placeholder="Enter email address"
+            value={formData.email}
+            onChange={(e) => handleInputChange('email', e.target.value)}
+          />
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>
-            <Input id="phone" placeholder="Enter phone number" />
+            <Input 
+              id="phone" 
+              placeholder="Enter phone number"
+              value={formData.phone}
+              onChange={(e) => handleInputChange('phone', e.target.value)}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="dob">Date of Birth</Label>
-            <Input id="dob" type="date" />
+            <Input 
+              id="dob" 
+              type="date"
+              value={formData.dob}
+              onChange={(e) => handleInputChange('dob', e.target.value)}
+            />
           </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="gender">Gender</Label>
-            <Select>
-              <SelectTrigger id="gender">
+            <Select
+              value={formData.gender}
+              onValueChange={(value) => handleInputChange('gender', value)}
+            >
+              <SelectTrigger>
                 <SelectValue placeholder="Select gender" />
               </SelectTrigger>
               <SelectContent>
@@ -65,8 +155,11 @@ export function NewPatient() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="bloodGroup">Blood Group</Label>
-            <Select>
-              <SelectTrigger id="bloodGroup">
+            <Select
+              value={formData.bloodGroup}
+              onValueChange={(value) => handleInputChange('bloodGroup', value)}
+            >
+              <SelectTrigger>
                 <SelectValue placeholder="Select blood group" />
               </SelectTrigger>
               <SelectContent>
@@ -85,21 +178,85 @@ export function NewPatient() {
 
         <div className="space-y-2">
           <Label htmlFor="address">Address</Label>
-          <Input id="address" placeholder="Enter address" />
+          <Textarea 
+            id="address" 
+            placeholder="Enter address"
+            value={formData.address}
+            onChange={(e) => handleInputChange('address', e.target.value)}
+          />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="condition">Medical Condition</Label>
-          <Input id="condition" placeholder="Enter primary medical condition" />
+          <Label htmlFor="medicalConditions">Medical Conditions</Label>
+          <Textarea 
+            id="medicalConditions" 
+            placeholder="Enter medical conditions"
+            value={formData.medicalConditions}
+            onChange={(e) => handleInputChange('medicalConditions', e.target.value)}
+          />
         </div>
 
-        <div className="flex gap-4">
-          <Button className="bg-primary hover:bg-primary/90">
-            Save Patient
-          </Button>
-          <Button variant="outline">
-            Cancel
-          </Button>
+        <div className="space-y-2">
+          <Label htmlFor="medications">Current Medications</Label>
+          <Textarea 
+            id="medications" 
+            placeholder="Enter current medications"
+            value={formData.medications}
+            onChange={(e) => handleInputChange('medications', e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="allergies">Allergies</Label>
+          <Textarea 
+            id="allergies" 
+            placeholder="Enter allergies"
+            value={formData.allergies}
+            onChange={(e) => handleInputChange('allergies', e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="surgeries">Past Surgeries</Label>
+          <Textarea 
+            id="surgeries" 
+            placeholder="Enter past surgeries"
+            value={formData.surgeries}
+            onChange={(e) => handleInputChange('surgeries', e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Emergency Contact</h3>
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="emergencyName">Contact Name</Label>
+              <Input 
+                id="emergencyName" 
+                placeholder="Enter emergency contact name"
+                value={formData.emergencyContact.name}
+                onChange={(e) => handleEmergencyContactChange('name', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="emergencyPhone">Contact Phone</Label>
+              <Input 
+                id="emergencyPhone" 
+                placeholder="Enter emergency contact phone"
+                value={formData.emergencyContact.phone}
+                onChange={(e) => handleEmergencyContactChange('phone', e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="relationship">Relationship to Patient</Label>
+            <Input 
+              id="relationship" 
+              placeholder="Enter relationship"
+              value={formData.emergencyContact.relationship}
+              onChange={(e) => handleEmergencyContactChange('relationship', e.target.value)}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -1,43 +1,60 @@
-import { PatientList } from "./components/pages/patient-list"
-import { NewPatient } from "./components/pages/new-patient"
 import { Bell, Search, Menu } from "lucide-react"
 import { Input } from "./components/ui/input"
 import { Button } from "./components/ui/button"
 import { ThemeProvider } from "./components/theme-provider"
 import { Sidebar } from "./components/sidebar"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { X } from "lucide-react"
-
-interface Tab {
-  id: string
-  title: string
-  content: React.ReactNode
-}
+import { useTabStore } from "./store/use-tabs"
+import { Outlet, useLocation, useNavigate } from "react-router-dom"
+import { routes } from "./lib/routes"
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [tabs, setTabs] = useState<Tab[]>([
-    { id: "home", title: "Patient List", content: <PatientList onAddPatient={handleAddPatient} /> }
-  ])
-  const [activeTab, setActiveTab] = useState("home")
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { tabs, activeTab, addTab, removeTab, setActiveTab, hasTab } = useTabStore()
 
-  function handleAddPatient() {
-    const newTab = {
-      id: `new-patient-${Date.now()}`,
-      title: "New Patient",
-      content: <NewPatient />
+  // Initialize the first tab based on the current route
+  useEffect(() => {
+    const currentPath = location.pathname
+    const route = Object.values(routes).find(r => r.path === currentPath)
+    
+    if (route && !hasTab(currentPath)) {
+      const newTab = {
+        id: currentPath,
+        title: route.name,
+        path: currentPath,
+      }
+      addTab(newTab)
     }
-    setTabs([...tabs, newTab])
-    setActiveTab(newTab.id)
+  }, [location, addTab, hasTab])
+
+  // Handle tab changes
+  const handleTabClick = (tabId: string) => {
+    const tab = tabs.find(t => t.id === tabId)
+    if (tab) {
+      setActiveTab(tabId)
+      navigate(tab.path)
+    }
   }
 
-  function handleCloseTab(tabId: string) {
+  const handleCloseTab = (tabId: string, e: React.MouseEvent) => {
+    e.stopPropagation()
     if (tabs.length === 1) return // Don't close the last tab
-    const newTabs = tabs.filter(tab => tab.id !== tabId)
-    setTabs(newTabs)
-    if (activeTab === tabId) {
-      setActiveTab(newTabs[newTabs.length - 1].id)
+    
+    const tab = tabs.find(t => t.id === tabId)
+    if (!tab) return
+
+    const currentIndex = tabs.findIndex(t => t.id === tabId)
+    const newTab = tabs[currentIndex - 1] || tabs[currentIndex + 1]
+    
+    if (newTab) {
+      setActiveTab(newTab.id)
+      navigate(newTab.path)
     }
+    
+    removeTab(tabId)
   }
 
   return (
@@ -106,7 +123,7 @@ function App() {
                       className={`group relative flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted/50 cursor-pointer ${
                         activeTab === tab.id ? "bg-muted" : ""
                       }`}
-                      onClick={() => setActiveTab(tab.id)}
+                      onClick={() => handleTabClick(tab.id)}
                     >
                       {tab.title}
                       {tabs.length > 1 && (
@@ -114,10 +131,7 @@ function App() {
                           variant="ghost"
                           size="icon"
                           className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleCloseTab(tab.id)
-                          }}
+                          onClick={(e) => handleCloseTab(tab.id, e)}
                         >
                           <X className="h-3 w-3" />
                         </Button>
@@ -130,7 +144,7 @@ function App() {
 
             {/* Scrollable Content */}
             <main className="flex-1 overflow-auto">
-              {tabs.find(tab => tab.id === activeTab)?.content}
+              <Outlet />
             </main>
           </div>
         </div>
