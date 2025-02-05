@@ -22,12 +22,16 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
+import type { MbAutoFormElement, CompositionData } from "@/types/mb-auto-form"
 import { useNavigate, useParams, useLocation } from "react-router-dom"
 import { usePatientStore, type Patient } from "@/store/use-patient-store"
 import { useTabStore } from "@/store/use-tabs"
 import { useToast } from "@/hooks/use-toast"
 import { FileText } from "lucide-react"
+import example from "../templates/example.json"
+import "medblocks-ui"
+import "medblocks-ui/dist/shoelace"
 
 const defaultEmergencyContact = {
   name: '',
@@ -45,6 +49,7 @@ export function EditPatient() {
   const { updateTab } = useTabStore()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const formRef = useRef<MbAutoFormElement>(null)
   const [formData, setFormData] = useState<Patient>({
     id: '',
     firstName: '',
@@ -82,6 +87,29 @@ export function EditPatient() {
     const title = fullName ? `Edit Patient - ${fullName}` : "Edit Patient"
     updateTab(location.pathname, { title })
   }, [formData.firstName, formData.lastName, location.pathname, updateTab])
+
+  const handleSaveVitals = async () => {
+    try {
+      if (formRef.current) {
+        const composition: CompositionData = formRef.current.export();
+        console.log("Vitals Data:", composition);
+        
+        // Here you would typically send this data to your backend
+        // For now just show success toast
+        toast({
+          title: "Success",
+          description: "Vitals recorded successfully",
+        });
+      }
+    } catch (error) {
+      console.error("Error saving vitals:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save vitals. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   const handleInputChange = (field: keyof Patient, value: string) => {
     setFormData(prev => ({
@@ -167,6 +195,7 @@ export function EditPatient() {
           <TabsTrigger value="medical">Medical History</TabsTrigger>
           <TabsTrigger value="contact">Contact & Emergency</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
+          <TabsTrigger value="vitals">Vitals</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">
@@ -422,6 +451,29 @@ export function EditPatient() {
                     <Input type="file" className="w-full" />
                     <Button variant="outline">Upload</Button>
                   </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="vitals" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Vitals</CardTitle>
+              <CardDescription>Record patient vital signs</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="w-full">
+                  <mb-auto-form 
+                    webTemplate={JSON.stringify(example)}
+                    />
+                </div>
+                <div className="flex justify-end">
+                  <Button onClick={handleSaveVitals}>
+                    Save Vitals
+                  </Button>
                 </div>
               </div>
             </CardContent>

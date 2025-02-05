@@ -10,7 +10,7 @@ import { Outlet, useNavigate } from "react-router-dom"
 import { Toaster } from "./components/ui/toaster"
 
 function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const navigate = useNavigate()
   const { tabs, activeTab, removeTab, setActiveTab } = useTabStore()
 
