@@ -1,3 +1,4 @@
+import type { VitalsResponse } from "@/services/vitals"
 import {
   Card,
   CardContent,
@@ -14,8 +15,8 @@ import {
   TableRow,
 } from "@/components/ui/table"
 interface VitalsListProps {
-  compositions: any[];
-  onSelect?: (composition: any) => void;
+  compositions: VitalsResponse[];
+  onSelect?: (composition: VitalsResponse) => void;
   isLoading?: boolean;
 }
 
@@ -41,11 +42,11 @@ export function VitalsList({ compositions, onSelect, isLoading }: VitalsListProp
           <TableHeader>
             <TableRow>
               <TableHead>Date</TableHead>
-              <TableHead>Blood Pressure</TableHead>
-              <TableHead>Heart Rate</TableHead>
-              <TableHead>Temperature</TableHead>
-              <TableHead>Respiratory Rate</TableHead>
-              <TableHead>SpO2</TableHead>
+              <TableHead>Blood Pressure (mmHg)</TableHead>
+              <TableHead>Pulse Rate (/min)</TableHead>
+              <TableHead>SpO2 (%)</TableHead>
+              <TableHead>Weight (kg)</TableHead>
+              <TableHead>Height (cm)</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -63,12 +64,12 @@ export function VitalsList({ compositions, onSelect, isLoading }: VitalsListProp
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => onSelect?.(composition)}
               >
-                <TableCell>{formatDateTime(composition?.time || '')}</TableCell>
-                <TableCell>{composition?.['Blood Pressure'] || '-'}</TableCell>
-                <TableCell>{composition?.['Heart Rate'] || '-'}</TableCell>
-                <TableCell>{composition?.['Temperature'] || '-'}</TableCell>
-                <TableCell>{composition?.['Respiratory Rate'] || '-'}</TableCell>
-                <TableCell>{composition?.['SpO2'] || '-'}</TableCell>
+                <TableCell>{formatDateTime(composition.start_time)}</TableCell>
+                <TableCell>{composition.blood_pressure ? `${composition.blood_pressure.systolic.magnitude}/${composition.blood_pressure.diastolic.magnitude}` : '-'}</TableCell>
+                <TableCell>{composition.pulse ? composition.pulse.rate : '-'}</TableCell>
+                <TableCell>{composition.spo2 ? `${(composition.spo2.numerator / composition.spo2.denominator * 100).toFixed(0)}` : '-'}</TableCell>
+                <TableCell>{composition.body_weight ? composition.body_weight.magnitude : '-'}</TableCell>
+                <TableCell>{composition.height ? composition.height.magnitude : '-'}</TableCell>
               </TableRow>
             ))}
             {!isLoading && compositions.length === 0 && (

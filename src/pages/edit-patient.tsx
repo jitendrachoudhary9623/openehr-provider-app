@@ -32,7 +32,7 @@ import { VitalsForm } from "@/components/vitals/vitals-form"
 import { VitalsList } from "@/components/vitals/vitals-list"
 import "medblocks-ui"
 import "medblocks-ui/dist/shoelace"
-import { saveVitalsComposition, getVitalsCompositions, type VitalsComposition } from "@/services/vitals"
+import { saveVitalsComposition, getVitalsCompositions, type VitalsComposition, type VitalsResponse } from "@/services/vitals"
 import example from "@/templates/example.json"
 
 const defaultEmergencyContact = {
@@ -51,7 +51,7 @@ export function EditPatient() {
   const { updateTab } = useTabStore()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [vitalsHistory, setVitalsHistory] = useState<VitalsComposition[]>([])
+  const [vitalsHistory, setVitalsHistory] = useState<VitalsResponse[]>([])
   const [isLoadingVitals, setIsLoadingVitals] = useState(false)
   const [formData, setFormData] = useState<Patient>({
     id: '',
@@ -139,7 +139,7 @@ export function EditPatient() {
     }
   };
 
-  const handleSelectVitals = (composition: VitalsComposition) => {
+  const handleSelectVitals = (composition: VitalsResponse) => {
     console.log("Selected vitals:", composition);
     // Handle viewing/editing selected vitals
   };
