@@ -565,19 +565,25 @@ export function EditPatient() {
         </TabsContent>
 
         <TabsContent value="vitals" className="space-y-6">
-          <div className="vitals-form">
-            <VitalsForm 
-              onSave={handleSaveVitals}
-              template={example}
-              initialData={selectedVitals}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <div className="vitals-form md:sticky md:top-6 md:col-span-2">
+              <VitalsForm 
+                onSave={handleSaveVitals}
+                template={example}
+                initialData={selectedVitals}
+                title={selectedVitals?.uid ? "Edit Vitals" : "Record Vitals"}
+                description={selectedVitals?.uid ? "Update patient vital signs" : "Enter new vital signs"}
+              />
+            </div>
+            <div className="md:col-span-3">
+              <VitalsList 
+                compositions={vitalsHistory}
+                onEdit={handleEditVitals}
+                onDelete={handleDeleteVitals}
+                isLoading={isLoadingVitals}
+              />
+            </div>
           </div>
-          <VitalsList 
-            compositions={vitalsHistory}
-            onEdit={handleEditVitals}
-            onDelete={handleDeleteVitals}
-            isLoading={isLoadingVitals}
-          />
           <AlertDialog open={!!vitalsToDelete} onOpenChange={() => setVitalsToDelete(undefined)}>
             <AlertDialogContent>
               <AlertDialogHeader>
