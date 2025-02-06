@@ -42,7 +42,15 @@ import { VitalsForm } from "@/components/vitals/vitals-form"
 import { VitalsList } from "@/components/vitals/vitals-list"
 import "medblocks-ui"
 import "medblocks-ui/dist/shoelace"
-import { saveVitalsComposition, getVitalsCompositions, deleteVitalsComposition, type VitalsComposition, type VitalsResponse } from "@/services/vitals"
+import { 
+  saveVitalsComposition, 
+  getVitalsCompositions, 
+  deleteVitalsComposition, 
+  getVitalsCompositionFlat,
+  updateVitalsComposition,
+  type VitalsComposition, 
+  type VitalsResponse 
+} from "@/services/vitals"
 import example from "@/templates/example.json"
 
 const defaultEmergencyContact = {
@@ -123,7 +131,13 @@ export function EditPatient() {
     updateTab(location.pathname, { title })
   }, [formData.firstName, formData.lastName, location.pathname, updateTab])
 
-  const handleSaveVitals = async (composition: VitalsComposition) => {
+  const handleSaveVitals = async (composition?: VitalsComposition) => {
+    // If composition is undefined, just clear selected vitals (cancel edit)
+    if (!composition) {
+      setSelectedVitals(undefined);
+      return;
+    }
+
     if (!formData.ehrId) {
       toast({
         title: "Error",
@@ -134,14 +148,17 @@ export function EditPatient() {
     }
 
     try {
-      await saveVitalsComposition(formData.ehrId, composition)
-      await loadVitals(formData.ehrId)
-      setSelectedVitals(undefined) // Clear form after saving
+      if (selectedVitals?.uid) {
+        // Update existing vitals
+        await updateVitalsComposition(formData.ehrId, selectedVitals.uid, composition)
+      } else {
+        // Create new vitals
+        await saveVitalsComposition(formData.ehrId, composition)
+      }
       
-      toast({
-        title: "Success",
-        description: "Vitals recorded successfully",
-      });
+      // Clear selected vitals and reload data
+      setSelectedVitals(undefined)
+      await loadVitals(formData.ehrId)
     } catch (error) {
       console.error("Error saving vitals:", error);
       toast({
@@ -152,16 +169,29 @@ export function EditPatient() {
     }
   };
 
-  const handleEditVitals = (composition: VitalsResponse) => {
-    setActiveTab("vitals");
-    // Clear any existing data first
-    setSelectedVitals(undefined);
-    // Set new data after a brief delay to ensure form is reset
-    setTimeout(() => {
-      setSelectedVitals(composition);
-      // Scroll to form
-      document.querySelector('.vitals-form')?.scrollIntoView({ behavior: 'smooth' });
-    }, 0);
+  const handleEditVitals = async (composition: VitalsResponse) => {
+    if (!formData.ehrId) return;
+
+    try {
+      setActiveTab("vitals");
+      // Get flat composition data
+      const flatData = await getVitalsCompositionFlat(formData.ehrId, composition.uid);
+      // Clear any existing data first
+      setSelectedVitals(undefined);
+      // Set new data after a brief delay to ensure form is reset
+      setTimeout(() => {
+        setSelectedVitals({ ...flatData, uid: composition.uid });
+        // Scroll to form
+        document.querySelector('.vitals-form')?.scrollIntoView({ behavior: 'smooth' });
+      }, 0);
+    } catch (error) {
+      console.error("Error getting vitals data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load vitals data for editing",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDeleteVitals = (composition: VitalsResponse) => {

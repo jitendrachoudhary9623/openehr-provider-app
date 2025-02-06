@@ -197,6 +197,54 @@ export async function saveVitalsComposition(ehrId: string, composition: VitalsCo
   return data;
 }
 
+export async function getVitalsCompositionFlat(ehrId: string, uid: string) {
+  const response = await fetch(
+    `${OPENEHR_BASE_URL}/ehr/${ehrId}/composition/${uid}`,
+    {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/openehr.wt.flat.schema+json'
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to get vitals composition');
+  }
+
+  const data = await response.json();
+  return data;
+}
+
+export async function updateVitalsComposition(ehrId: string, uid: string, composition: VitalsComposition) {
+  // Extract the UUID part from the versioned object UID
+  const versionedObjectUid = uid.split('::')[0];
+  
+  // Remove uid from composition data
+  const { ...compositionData } = composition;
+  delete compositionData.uid
+  const response = await fetch(
+    `${OPENEHR_BASE_URL}/ehr/${ehrId}/composition/${versionedObjectUid}?templateId=jitendra.choudhary.vitals.v1`,
+    {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/openehr.wt.flat.schema+json',
+        'Content-Type': 'application/openehr.wt.flat.schema+json',
+        'Prefer': 'return=representation',
+        'If-Match': uid
+      },
+      body: JSON.stringify(compositionData)
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to update vitals composition');
+  }
+
+  const data = await response.json();
+  return data;
+}
+
 export async function getVitalsCompositions(ehrId: string) {
   const aql = `
     SELECT c 

@@ -10,7 +10,7 @@ import { useRef, useEffect } from "react"
 import type { MbAutoFormElement, CompositionData } from "@/types/mb-auto-form"
 import { useToast } from "@/hooks/use-toast"
 interface VitalsFormProps {
-  onSave?: (composition: CompositionData) => void;
+  onSave?: (composition: CompositionData | undefined) => void;
   template: any;
   initialData?: CompositionData;
   title?: string;
@@ -23,7 +23,14 @@ export function VitalsForm({ onSave, template, initialData, title = "Record Vita
 
   useEffect(() => {
     if (formRef.current && initialData) {
-      formRef.current.setAttribute('data', JSON.stringify(initialData));
+      if (initialData.uid) {
+        // For editing existing records, use import
+        // @ts-expect-error - import method exists at runtime
+        formRef.current.import(initialData);
+      } else {
+        // For new records, use data attribute
+        formRef.current.setAttribute('data', JSON.stringify(initialData));
+      }
     }
   }, [initialData]);
 
@@ -38,9 +45,13 @@ export function VitalsForm({ onSave, template, initialData, title = "Record Vita
           onSave(composition);
         }
         
+        // Clear form after saving
+        // @ts-expect-error - import method exists at runtime
+        formRef.current.import({});
+        
         toast({
           title: "Success",
-          description: "Vitals recorded successfully",
+          description: initialData?.uid ? "Vitals updated successfully" : "Vitals recorded successfully",
         });
       }
     } catch (error) {
@@ -67,9 +78,21 @@ export function VitalsForm({ onSave, template, initialData, title = "Record Vita
               webTemplate={JSON.stringify(template)}
             />
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-3">
+            {initialData?.uid && (
+              <Button variant="outline" onClick={() => {
+                if (formRef.current) {
+                  // @ts-expect-error - import method exists at runtime
+                  formRef.current.import({});
+                }
+                // Pass undefined to clear selected vitals
+                onSave?.(undefined);
+              }}>
+                Cancel
+              </Button>
+            )}
             <Button onClick={handleSaveVitals}>
-              Save Vitals
+              {initialData?.uid ? 'Update Vitals' : 'Save Vitals'}
             </Button>
           </div>
         </div>
