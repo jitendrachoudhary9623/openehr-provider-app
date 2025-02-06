@@ -65,15 +65,15 @@ export function Sidebar({ className, onToggle }: SidebarProps) {
 
   return (
     <div className={cn(
-      "relative flex flex-col h-screen transition-all duration-300 bg-background border-r border-border/40",
+      "relative flex flex-col h-screen transition-all duration-300 bg-[rgb(37_99_235/0.02)] border-r border-border/40",
       collapsed ? "w-20" : "w-64",
       className
     )}>
       {/* Logo Section */}
-      <div className="flex items-center h-14 px-4 border-b border-border/40 bg-background/95">
+      <div className="flex items-center h-14 px-4 border-b border-border/40 bg-[rgb(37_99_235/0.05)]">
         <div className="flex items-center gap-2 w-full">
-          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <PlusCircle className="h-5 w-5 text-primary" />
+          <div className="h-8 w-8 rounded-lg bg-[rgb(37_99_235/0.1)] flex items-center justify-center flex-shrink-0">
+            <PlusCircle className="h-5 w-5 text-[rgb(37_99_235)]" />
           </div>
           <h2 className={cn(
             "text-lg font-semibold tracking-tight transition-opacity duration-300",
@@ -85,7 +85,7 @@ export function Sidebar({ className, onToggle }: SidebarProps) {
       </div>
 
       {/* Navigation Section */}
-      <div className="flex-1 overflow-y-auto overflow-x-hidden py-4">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden py-4 bg-[rgb(37_99_235/0.05)]">
         <nav className="space-y-1 px-2">
           {navigation.map((item) => (
             <Button
@@ -93,14 +93,14 @@ export function Sidebar({ className, onToggle }: SidebarProps) {
               variant={location.pathname === item.path ? "secondary" : "ghost"}
               className={cn(
                 "w-full justify-start gap-2 h-10",
-                location.pathname === item.path ? "bg-primary/10 hover:bg-primary/15" : "",
+                location.pathname === item.path ? "bg-[rgb(37_99_235/0.1)] hover:bg-[rgb(37_99_235/0.15)]" : "",
                 collapsed ? "px-3" : "px-3"
               )}
               onClick={() => handleNavigation(item.path, item.name)}
             >
               <item.icon className={cn(
                 "h-5 w-5",
-                location.pathname === item.path ? "text-primary" : "text-muted-foreground"
+                location.pathname === item.path ? "text-[rgb(37_99_235)]" : "text-muted-foreground"
               )} />
               <span className={cn(
                 "transition-opacity duration-300",
@@ -114,7 +114,7 @@ export function Sidebar({ className, onToggle }: SidebarProps) {
       </div>
 
       {/* Settings Section */}
-      <div className="border-t border-border/40 p-4">
+      <div className="border-t border-border/40 p-4 bg-[rgb(37_99_235/0.02)]">
         <div className="space-y-1">
           <Button variant="ghost" className={cn(
             "w-full justify-start gap-2 h-10",
@@ -174,7 +174,7 @@ export function Sidebar({ className, onToggle }: SidebarProps) {
       <Button
         variant="ghost"
         size="icon"
-        className="absolute -right-4 top-20 h-8 w-8 rounded-full border shadow-md bg-background hover:bg-accent"
+        className="absolute -right-4 top-20 h-8 w-8 rounded-full border shadow-md bg-background hover:bg-[rgb(37_99_235/0.1)]"
         onClick={handleToggle}
       >
         {collapsed ? (

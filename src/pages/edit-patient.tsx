@@ -37,7 +37,8 @@ import { useNavigate, useParams, useLocation } from "react-router-dom"
 import { usePatientStore, type Patient } from "@/store/use-patient-store"
 import { useTabStore } from "@/store/use-tabs"
 import { useToast } from "@/hooks/use-toast"
-import { FileText } from "lucide-react"
+import { FileText, TrendingUp, TrendingDown, Minus } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { VitalsForm } from "@/components/vitals/vitals-form"
 import { VitalsList } from "@/components/vitals/vitals-list"
 import "medblocks-ui"
@@ -565,8 +566,148 @@ export function EditPatient() {
         </TabsContent>
 
         <TabsContent value="vitals" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <Card className="hover:shadow-lg transition-all duration-200 group">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                  Latest Blood Pressure
+                  {vitalsHistory[0]?.blood_pressure && (
+                    <Badge variant={
+                      vitalsHistory[0].blood_pressure.systolic.magnitude >= 140 || 
+                      vitalsHistory[0].blood_pressure.diastolic.magnitude >= 90 ? 
+                      'destructive' : 
+                      vitalsHistory[0].blood_pressure.systolic.magnitude <= 90 || 
+                      vitalsHistory[0].blood_pressure.diastolic.magnitude <= 60 ? 
+                      'secondary' : 'default'
+                    }>
+                      {vitalsHistory[0].blood_pressure.systolic.magnitude >= 140 || 
+                       vitalsHistory[0].blood_pressure.diastolic.magnitude >= 90 ? 'High' :
+                       vitalsHistory[0].blood_pressure.systolic.magnitude <= 90 || 
+                       vitalsHistory[0].blood_pressure.diastolic.magnitude <= 60 ? 'Low' : 'Normal'}
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold group-hover:text-[rgb(37_99_235/var(--tw-bg-opacity,1))] transition-colors">
+                  {vitalsHistory[0]?.blood_pressure ? 
+                    `${vitalsHistory[0].blood_pressure.systolic.magnitude}/${vitalsHistory[0].blood_pressure.diastolic.magnitude} mmHg` : 
+                    'No data'
+                  }
+                </div>
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-xs text-muted-foreground">
+                    {vitalsHistory[0]?.start_time ? 
+                      `Last recorded: ${new Date(vitalsHistory[0].start_time).toLocaleDateString()}` :
+                      'No records'
+                    }
+                  </p>
+                  {vitalsHistory[1]?.blood_pressure && vitalsHistory[0]?.blood_pressure && (
+                    <div className="flex items-center gap-1 text-xs">
+                      {vitalsHistory[0].blood_pressure.systolic.magnitude > vitalsHistory[1].blood_pressure.systolic.magnitude ? (
+                        <TrendingUp className="h-3 w-3 text-destructive" />
+                      ) : vitalsHistory[0].blood_pressure.systolic.magnitude < vitalsHistory[1].blood_pressure.systolic.magnitude ? (
+                        <TrendingDown className="h-3 w-3 text-green-500" />
+                      ) : (
+                        <Minus className="h-3 w-3 text-muted-foreground" />
+                      )}
+                      <span className="text-muted-foreground">vs previous</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-all duration-200 group">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                  Latest SpO2
+                  {vitalsHistory[0]?.spo2 && (
+                    <Badge variant={
+                      (vitalsHistory[0].spo2.numerator / vitalsHistory[0].spo2.denominator * 100) < 95 ? 
+                      'destructive' : 'default'
+                    }>
+                      {(vitalsHistory[0].spo2.numerator / vitalsHistory[0].spo2.denominator * 100) < 95 ? 
+                       'Low' : 'Normal'}
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold group-hover:text-[rgb(37_99_235/var(--tw-bg-opacity,1))] transition-colors">
+                  {vitalsHistory[0]?.spo2 ? 
+                    `${(vitalsHistory[0].spo2.numerator / vitalsHistory[0].spo2.denominator * 100).toFixed(0)}%` : 
+                    'No data'
+                  }
+                </div>
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-xs text-muted-foreground">
+                    {vitalsHistory[0]?.start_time ? 
+                      `Last recorded: ${new Date(vitalsHistory[0].start_time).toLocaleDateString()}` :
+                      'No records'
+                    }
+                  </p>
+                  {vitalsHistory[1]?.spo2 && vitalsHistory[0]?.spo2 && (
+                    <div className="flex items-center gap-1 text-xs">
+                      {vitalsHistory[0].spo2.numerator > vitalsHistory[1].spo2.numerator ? (
+                        <TrendingUp className="h-3 w-3 text-green-500" />
+                      ) : vitalsHistory[0].spo2.numerator < vitalsHistory[1].spo2.numerator ? (
+                        <TrendingDown className="h-3 w-3 text-destructive" />
+                      ) : (
+                        <Minus className="h-3 w-3 text-muted-foreground" />
+                      )}
+                      <span className="text-muted-foreground">vs previous</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="hover:shadow-lg transition-all duration-200 group">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center justify-between">
+                  Latest Pulse Rate
+                  {vitalsHistory[0]?.pulse && (
+                    <Badge variant={
+                      vitalsHistory[0].pulse.rate > 100 ? 'destructive' :
+                      vitalsHistory[0].pulse.rate < 60 ? 'secondary' : 'default'
+                    }>
+                      {vitalsHistory[0].pulse.rate > 100 ? 'High' :
+                       vitalsHistory[0].pulse.rate < 60 ? 'Low' : 'Normal'}
+                    </Badge>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold group-hover:text-[rgb(37_99_235/var(--tw-bg-opacity,1))] transition-colors">
+                  {vitalsHistory[0]?.pulse ? 
+                    `${vitalsHistory[0].pulse.rate} bpm` : 
+                    'No data'
+                  }
+                </div>
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-xs text-muted-foreground">
+                    {vitalsHistory[0]?.start_time ? 
+                      `Last recorded: ${new Date(vitalsHistory[0].start_time).toLocaleDateString()}` :
+                      'No records'
+                    }
+                  </p>
+                  {vitalsHistory[1]?.pulse && vitalsHistory[0]?.pulse && (
+                    <div className="flex items-center gap-1 text-xs">
+                      {vitalsHistory[0].pulse.rate > vitalsHistory[1].pulse.rate ? (
+                        <TrendingUp className="h-3 w-3 text-destructive" />
+                      ) : vitalsHistory[0].pulse.rate < vitalsHistory[1].pulse.rate ? (
+                        <TrendingDown className="h-3 w-3 text-green-500" />
+                      ) : (
+                        <Minus className="h-3 w-3 text-muted-foreground" />
+                      )}
+                      <span className="text-muted-foreground">vs previous</span>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            <div className="vitals-form md:sticky md:top-6 md:col-span-2">
+            <div className="vitals-form md:sticky md:top-6 md:col-span-2 transition-all duration-200 hover:shadow-lg bg-[rgb(37_99_235/var(--tw-bg-opacity,1))] bg-opacity-5 rounded-lg">
               <VitalsForm 
                 onSave={handleSaveVitals}
                 template={example}
@@ -575,7 +716,7 @@ export function EditPatient() {
                 description={selectedVitals?.uid ? "Update patient vital signs" : "Enter new vital signs"}
               />
             </div>
-            <div className="md:col-span-3">
+            <div className="md:col-span-3 transition-all duration-200 hover:shadow-lg">
               <VitalsList 
                 compositions={vitalsHistory}
                 onEdit={handleEditVitals}

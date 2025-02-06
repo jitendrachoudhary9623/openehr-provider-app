@@ -48,15 +48,15 @@ function App() {
         </div>
 
         {/* Main Content */}
-        <div className={`flex-1 min-h-screen ${sidebarOpen ? "ml-64" : "ml-20"} transition-all duration-300`}>
+        <div className={`flex-1 min-h-screen ${sidebarOpen ? "ml-64" : "ml-20"} transition-all duration-300 bg-gradient-to-br from-[rgb(37_99_235/0.02)] via-background to-background`}>
           <div className="flex flex-col min-h-screen">
             {/* Fixed Header */}
-            <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <div className="container flex h-14 max-w-full items-center px-4">
+            <header className="sticky top-0 z-20 border-b bg-gradient-to-b from-white via-white to-[rgb(37_99_235/0.05)] dark:from-background dark:via-background dark:to-[rgb(37_99_235/0.1)] backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <div className="container flex h-14 max-w-full items-center px-4 bg-gradient-to-b from-background/95 to-background/80">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="mr-4 h-8 w-8 md:hidden"
+                  className="mr-4 h-8 w-8 md:hidden hover:bg-[rgb(37_99_235/0.1)]"
                   onClick={() => setSidebarOpen(!sidebarOpen)}
                 >
                   <Menu className="h-5 w-5" />
@@ -68,7 +68,7 @@ function App() {
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input 
                       placeholder="Search patients, records, or documents..." 
-                      className="pl-8 bg-background/60 focus:bg-background"
+                      className="pl-8 bg-white/80 dark:bg-background/80 focus:bg-white dark:focus:bg-background focus:ring-[rgb(37_99_235/0.3)] focus:ring-offset-0 transition-colors"
                     />
                   </div>
                 </div>
@@ -77,10 +77,10 @@ function App() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="relative hover:bg-background/80"
+                    className="relative hover:bg-[rgb(37_99_235/0.1)]"
                   >
                     <Bell className="h-5 w-5" />
-                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-[rgb(37_99_235)] text-[10px] font-medium text-white flex items-center justify-center">
                       3
                     </span>
                   </Button>
@@ -89,21 +89,21 @@ function App() {
                       <p className="text-sm font-medium">Dr. Jane Smith</p>
                       <p className="text-xs text-muted-foreground">Cardiologist</p>
                     </div>
-                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-sm font-medium text-primary">JS</span>
+                    <div className="h-9 w-9 rounded-full bg-[rgb(37_99_235/0.1)] flex items-center justify-center">
+                      <span className="text-sm font-medium text-[rgb(37_99_235)]">JS</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Tabs */}
-              <div className="border-t">
-                <div className="container flex max-w-full items-center gap-2 px-4 py-1 overflow-x-auto">
+              <div className="border-t bg-background/95">
+                <div className="container flex max-w-full items-center gap-2 px-4 py-1.5 overflow-x-auto">
                   {tabs.map(tab => (
                     <div
                       key={tab.id}
-                      className={`group relative flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-muted/50 cursor-pointer ${
-                        activeTab === tab.id ? "bg-muted" : ""
+                      className={`group relative flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors hover:bg-[rgb(37_99_235/0.1)] cursor-pointer ${
+                        activeTab === tab.id ? "bg-[rgb(37_99_235/0.1)]" : ""
                       }`}
                       onClick={() => handleTabClick(tab.id)}
                     >
@@ -112,7 +112,7 @@ function App() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="h-4 w-4 p-0 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[rgb(37_99_235/0.15)]"
                           onClick={(e) => {
                             e.stopPropagation()
                             handleCloseTab(tab.id)
