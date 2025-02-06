@@ -22,16 +22,18 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { useState, useEffect, useRef } from "react"
-import type { MbAutoFormElement, CompositionData } from "@/types/mb-auto-form"
+import { useState, useEffect, useCallback } from "react"
 import { useNavigate, useParams, useLocation } from "react-router-dom"
 import { usePatientStore, type Patient } from "@/store/use-patient-store"
 import { useTabStore } from "@/store/use-tabs"
 import { useToast } from "@/hooks/use-toast"
 import { FileText } from "lucide-react"
-import example from "../templates/example.json"
+import { VitalsForm } from "@/components/vitals/vitals-form"
+import { VitalsList } from "@/components/vitals/vitals-list"
 import "medblocks-ui"
 import "medblocks-ui/dist/shoelace"
+import { saveVitalsComposition, getVitalsCompositions } from "@/services/vitals"
+import example from "@/templates/example.json"
 
 const defaultEmergencyContact = {
   name: '',
@@ -49,7 +51,9 @@ export function EditPatient() {
   const { updateTab } = useTabStore()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const formRef = useRef<MbAutoFormElement>(null)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [vitalsHistory, setVitalsHistory] = useState<any[]>([])
+  const [isLoadingVitals, setIsLoadingVitals] = useState(false)
   const [formData, setFormData] = useState<Patient>({
     id: '',
     firstName: '',
@@ -68,16 +72,36 @@ export function EditPatient() {
     emergencyContact: defaultEmergencyContact
   })
 
+  const loadVitals = useCallback(async (ehrId: string) => {
+    try {
+      setIsLoadingVitals(true)
+      const compositions = await getVitalsCompositions(ehrId)
+      setVitalsHistory(compositions)
+    } catch (error) {
+      console.error('Error loading vitals:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load vitals history. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoadingVitals(false)
+    }
+  }, [toast])
+
   useEffect(() => {
     if (id) {
       const patient = getPatientById(id)
       if (patient) {
         setFormData(patient)
+        if (patient.ehrId) {
+          loadVitals(patient.ehrId)
+        }
       } else {
         navigate("/patients")
       }
     }
-  }, [id, getPatientById, navigate])
+  }, [id, getPatientById, navigate, loadVitals])
 
   // Update tab title when name changes
   useEffect(() => {
@@ -88,19 +112,25 @@ export function EditPatient() {
     updateTab(location.pathname, { title })
   }, [formData.firstName, formData.lastName, location.pathname, updateTab])
 
-  const handleSaveVitals = async () => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleSaveVitals = async (composition: any) => {
+    if (!formData.ehrId) {
+      toast({
+        title: "Error",
+        description: "No EHR ID found for patient",
+        variant: "destructive",
+      })
+      return
+    }
+
     try {
-      if (formRef.current) {
-        const composition: CompositionData = formRef.current.export();
-        console.log("Vitals Data:", composition);
-        
-        // Here you would typically send this data to your backend
-        // For now just show success toast
-        toast({
-          title: "Success",
-          description: "Vitals recorded successfully",
-        });
-      }
+      await saveVitalsComposition(formData.ehrId, composition)
+      await loadVitals(formData.ehrId)
+      
+      toast({
+        title: "Success",
+        description: "Vitals recorded successfully",
+      });
     } catch (error) {
       console.error("Error saving vitals:", error);
       toast({
@@ -109,6 +139,12 @@ export function EditPatient() {
         variant: "destructive",
       });
     }
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleSelectVitals = (composition: any) => {
+    console.log("Selected vitals:", composition);
+    // Handle viewing/editing selected vitals
   };
 
   const handleInputChange = (field: keyof Patient, value: string) => {
@@ -135,17 +171,7 @@ export function EditPatient() {
         updatePatient(id, formData)
         toast({
           title: "Success",
-          description: (
-            <div className="flex flex-col gap-2">
-              <p>Patient information updated successfully</p>
-              {formData.ehrId && (
-                <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-mono text-sm">EHR ID: {formData.ehrId}</span>
-                </div>
-              )}
-            </div>
-          ),
+          description: "Patient information updated successfully"
         })
         navigate("/patients")
       }
@@ -174,12 +200,20 @@ export function EditPatient() {
           <p className="text-muted-foreground">
             Update patient information and medical history
           </p>
-          {formData.ehrId && (
-            <div className="flex items-center gap-2 mt-2 p-2 bg-muted rounded-md max-w-fit">
-              <FileText className="h-4 w-4 text-muted-foreground" />
-              <span className="font-mono text-sm">EHR ID: {formData.ehrId}</span>
-            </div>
-          )}
+          <div className="flex flex-col gap-2 mt-2">
+            {id && (
+              <div className="flex items-center gap-2 p-2 bg-muted rounded-md max-w-fit">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                <span className="font-mono text-sm">Patient ID: {id}</span>
+              </div>
+            )}
+            {formData.ehrId && (
+              <div className="flex items-center gap-2 p-2 bg-muted rounded-md max-w-fit">
+                <FileText className="h-4 w-4 text-muted-foreground" />
+                <span className="font-mono text-sm">EHR ID: {formData.ehrId}</span>
+              </div>
+            )}
+          </div>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" onClick={handleCancel}>Cancel</Button>
@@ -458,26 +492,15 @@ export function EditPatient() {
         </TabsContent>
 
         <TabsContent value="vitals" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Vitals</CardTitle>
-              <CardDescription>Record patient vital signs</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="w-full">
-                  <mb-auto-form 
-                    webTemplate={JSON.stringify(example)}
-                    />
-                </div>
-                <div className="flex justify-end">
-                  <Button onClick={handleSaveVitals}>
-                    Save Vitals
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <VitalsForm 
+            onSave={handleSaveVitals}
+            template={example}
+          />
+          <VitalsList 
+            compositions={vitalsHistory}
+            onSelect={handleSelectVitals}
+            isLoading={isLoadingVitals}
+          />
         </TabsContent>
       </Tabs>
     </div>
