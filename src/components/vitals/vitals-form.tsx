@@ -6,17 +6,26 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { useRef } from "react"
+import { useRef, useEffect } from "react"
 import type { MbAutoFormElement, CompositionData } from "@/types/mb-auto-form"
 import { useToast } from "@/hooks/use-toast"
 interface VitalsFormProps {
   onSave?: (composition: CompositionData) => void;
   template: any;
+  initialData?: CompositionData;
+  title?: string;
+  description?: string;
 }
 
-export function VitalsForm({ onSave, template }: VitalsFormProps) {
+export function VitalsForm({ onSave, template, initialData, title = "Record Vitals", description = "Enter patient vital signs" }: VitalsFormProps) {
   const { toast } = useToast()
   const formRef = useRef<MbAutoFormElement>(null)
+
+  useEffect(() => {
+    if (formRef.current && initialData) {
+      formRef.current.setAttribute('data', JSON.stringify(initialData));
+    }
+  }, [initialData]);
 
   const handleSaveVitals = async () => {
     try {
@@ -47,8 +56,8 @@ export function VitalsForm({ onSave, template }: VitalsFormProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Record Vitals</CardTitle>
-        <CardDescription>Enter patient vital signs</CardDescription>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">

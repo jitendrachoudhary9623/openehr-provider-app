@@ -158,6 +158,22 @@ export interface VitalsResponse extends VitalsData {
   [key: string]: unknown;
 }
 
+export async function deleteVitalsComposition(ehrId: string, uid: string) {
+  const response = await fetch(
+    `${OPENEHR_BASE_URL}/ehr/${ehrId}/composition/${uid}`,
+    {
+      method: 'DELETE',
+      headers: {
+        'Accept': 'application/json'
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to delete vitals composition');
+  }
+}
+
 export async function saveVitalsComposition(ehrId: string, composition: VitalsComposition) {
   const response = await fetch(
     `${OPENEHR_BASE_URL}/ehr/${ehrId}/composition?templateId=jitendra.choudhary.vitals.v1`,

@@ -1,4 +1,14 @@
 import { Button } from "@/components/ui/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -32,7 +42,7 @@ import { VitalsForm } from "@/components/vitals/vitals-form"
 import { VitalsList } from "@/components/vitals/vitals-list"
 import "medblocks-ui"
 import "medblocks-ui/dist/shoelace"
-import { saveVitalsComposition, getVitalsCompositions, type VitalsComposition, type VitalsResponse } from "@/services/vitals"
+import { saveVitalsComposition, getVitalsCompositions, deleteVitalsComposition, type VitalsComposition, type VitalsResponse } from "@/services/vitals"
 import example from "@/templates/example.json"
 
 const defaultEmergencyContact = {
@@ -53,6 +63,8 @@ export function EditPatient() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [vitalsHistory, setVitalsHistory] = useState<VitalsResponse[]>([])
   const [isLoadingVitals, setIsLoadingVitals] = useState(false)
+  const [selectedVitals, setSelectedVitals] = useState<VitalsResponse | undefined>()
+  const [vitalsToDelete, setVitalsToDelete] = useState<VitalsResponse | undefined>()
   const [formData, setFormData] = useState<Patient>({
     id: '',
     firstName: '',
@@ -124,6 +136,7 @@ export function EditPatient() {
     try {
       await saveVitalsComposition(formData.ehrId, composition)
       await loadVitals(formData.ehrId)
+      setSelectedVitals(undefined) // Clear form after saving
       
       toast({
         title: "Success",
@@ -139,9 +152,42 @@ export function EditPatient() {
     }
   };
 
-  const handleSelectVitals = (composition: VitalsResponse) => {
-    console.log("Selected vitals:", composition);
-    // Handle viewing/editing selected vitals
+  const handleEditVitals = (composition: VitalsResponse) => {
+    setActiveTab("vitals");
+    // Clear any existing data first
+    setSelectedVitals(undefined);
+    // Set new data after a brief delay to ensure form is reset
+    setTimeout(() => {
+      setSelectedVitals(composition);
+      // Scroll to form
+      document.querySelector('.vitals-form')?.scrollIntoView({ behavior: 'smooth' });
+    }, 0);
+  };
+
+  const handleDeleteVitals = (composition: VitalsResponse) => {
+    setVitalsToDelete(composition);
+  };
+
+  const confirmDelete = async () => {
+    if (!formData.ehrId || !vitalsToDelete) return;
+
+    try {
+      await deleteVitalsComposition(formData.ehrId, vitalsToDelete.uid);
+      await loadVitals(formData.ehrId);
+      toast({
+        title: "Success",
+        description: "Vitals record deleted successfully",
+      });
+    } catch (error) {
+      console.error("Error deleting vitals:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete vitals record. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setVitalsToDelete(undefined);
+    }
   };
 
   const handleInputChange = (field: keyof Patient, value: string) => {
@@ -489,15 +535,35 @@ export function EditPatient() {
         </TabsContent>
 
         <TabsContent value="vitals" className="space-y-6">
-          <VitalsForm 
-            onSave={handleSaveVitals}
-            template={example}
-          />
+          <div className="vitals-form">
+            <VitalsForm 
+              onSave={handleSaveVitals}
+              template={example}
+              initialData={selectedVitals}
+            />
+          </div>
           <VitalsList 
             compositions={vitalsHistory}
-            onSelect={handleSelectVitals}
+            onEdit={handleEditVitals}
+            onDelete={handleDeleteVitals}
             isLoading={isLoadingVitals}
           />
+          <AlertDialog open={!!vitalsToDelete} onOpenChange={() => setVitalsToDelete(undefined)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Vitals Record</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this vitals record? This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </TabsContent>
       </Tabs>
     </div>
