@@ -32,7 +32,7 @@ import { VitalsForm } from "@/components/vitals/vitals-form"
 import { VitalsList } from "@/components/vitals/vitals-list"
 import "medblocks-ui"
 import "medblocks-ui/dist/shoelace"
-import { saveVitalsComposition, getVitalsCompositions } from "@/services/vitals"
+import { saveVitalsComposition, getVitalsCompositions, type VitalsComposition } from "@/services/vitals"
 import example from "@/templates/example.json"
 
 const defaultEmergencyContact = {
@@ -51,8 +51,7 @@ export function EditPatient() {
   const { updateTab } = useTabStore()
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [vitalsHistory, setVitalsHistory] = useState<any[]>([])
+  const [vitalsHistory, setVitalsHistory] = useState<VitalsComposition[]>([])
   const [isLoadingVitals, setIsLoadingVitals] = useState(false)
   const [formData, setFormData] = useState<Patient>({
     id: '',
@@ -112,8 +111,7 @@ export function EditPatient() {
     updateTab(location.pathname, { title })
   }, [formData.firstName, formData.lastName, location.pathname, updateTab])
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleSaveVitals = async (composition: any) => {
+  const handleSaveVitals = async (composition: VitalsComposition) => {
     if (!formData.ehrId) {
       toast({
         title: "Error",
@@ -141,8 +139,7 @@ export function EditPatient() {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleSelectVitals = (composition: any) => {
+  const handleSelectVitals = (composition: VitalsComposition) => {
     console.log("Selected vitals:", composition);
     // Handle viewing/editing selected vitals
   };
