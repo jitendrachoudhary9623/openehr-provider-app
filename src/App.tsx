@@ -74,7 +74,7 @@ function App() {
                 </div>
                 
                 <div className="flex items-center space-x-4">
-                  <Button
+                  {/* <Button
                     variant="ghost"
                     size="icon"
                     className="relative hover:bg-[rgb(37_99_235/0.1)]"
@@ -83,7 +83,7 @@ function App() {
                     <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-[rgb(37_99_235)] text-[10px] font-medium text-white flex items-center justify-center">
                       3
                     </span>
-                  </Button>
+                  </Button> */}
                   <div className="flex items-center space-x-3">
                     <div className="hidden md:block text-right">
                       <p className="text-sm font-medium">Dr. Jane Smith</p>

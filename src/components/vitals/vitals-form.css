@@ -1,0 +1,16 @@
+/* Target the specific structure from the web component */
+mb-auto-form div[id*="vitals"] .heading p.p-depth.bg-slate-600,
+mb-auto-form #autoForm .heading p.p-depth.bg-slate-600,
+mb-auto-form .heading p.p-depth.bg-slate-600 {
+  background-color: rgb(10 78 229) !important;
+}
+
+/* Fallback for shadow DOM */
+::part(heading) p.p-depth.bg-slate-600 {
+  background-color: rgb(10 78 229) !important;
+}
+
+/* CSS Custom Property override */
+:root {
+  --mb-bg-slate-600: rgb(10 78 229) !important;
+}
