@@ -35,7 +35,7 @@ type ChartDataItem = {
   start_time?: string;
 };
 
-// Custom tooltip component to display templateId
+// Enhanced tooltip component with more detailed information
 const CustomTooltip = ({ active, payload, label }: {
   active?: boolean;
   payload?: Array<{
@@ -48,24 +48,102 @@ const CustomTooltip = ({ active, payload, label }: {
 }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
+    
+    // Calculate status for vitals
+    const getBPStatus = (systolic?: number, diastolic?: number) => {
+      if (!systolic || !diastolic) return null;
+      if (systolic >= 140 || diastolic >= 90) return { label: "High", color: "text-red-500" };
+      if (systolic <= 90 || diastolic <= 60) return { label: "Low", color: "text-amber-500" };
+      return { label: "Normal", color: "text-green-500" };
+    };
+    
+    const getPulseStatus = (pulse?: number) => {
+      if (!pulse) return null;
+      if (pulse > 100) return { label: "High", color: "text-red-500" };
+      if (pulse < 60) return { label: "Low", color: "text-amber-500" };
+      return { label: "Normal", color: "text-green-500" };
+    };
+    
+    const getSpO2Status = (spo2?: string) => {
+      if (!spo2) return null;
+      const value = parseInt(spo2);
+      if (value < 95) return { label: "Low", color: "text-red-500" };
+      return { label: "Normal", color: "text-green-500" };
+    };
+    
+    const getTempStatus = (temp?: number) => {
+      if (!temp) return null;
+      if (temp > 37.5) return { label: "High", color: "text-red-500" };
+      if (temp < 36.0) return { label: "Low", color: "text-amber-500" };
+      return { label: "Normal", color: "text-green-500" };
+    };
+    
+    // Get status based on data
+    const bpStatus = getBPStatus(data.systolic, data.diastolic);
+    const pulseStatus = getPulseStatus(data.pulse);
+    const spo2Status = getSpO2Status(data.spo2);
+    const tempStatus = getTempStatus(data.temperature);
+    
     return (
-      <div className="bg-background border rounded p-2 shadow-md">
-        <p className="font-bold">{label}</p>
-        {payload.map((entry, index) => (
-          <p key={`item-${index}`} style={{ color: entry.color }}>
-            {entry.name}: {entry.value}
-          </p>
-        ))}
-        {data.patientId && (
-          <p className="text-xs text-muted-foreground mt-1">
-            Patient ID: {data.patientId}
-          </p>
-        )}
-        {data.templateId && (
-          <p className="text-xs text-muted-foreground">
-            Template ID: {data.templateId}
-          </p>
-        )}
+      <div className="bg-background/95 backdrop-blur-sm border rounded-lg p-3 shadow-lg max-w-xs">
+        <div className="flex items-center justify-between mb-2 border-b pb-2">
+          <p className="font-bold text-primary">{new Date(data.start_time || '').toLocaleString()}</p>
+          {data.templateId && (
+            <Badge variant="outline" className="text-xs font-mono">{data.templateId}</Badge>
+          )}
+        </div>
+        
+        <div className="space-y-2">
+          {payload.map((entry, index) => (
+            <div key={`item-${index}`} className="flex items-center justify-between">
+              <span className="font-medium" style={{ color: entry.color }}>{entry.name}:</span>
+              <span className="font-bold">{entry.value}</span>
+            </div>
+          ))}
+          
+          {/* Status indicators */}
+          <div className="mt-3 pt-2 border-t border-dashed">
+            {bpStatus && data.systolic && data.diastolic && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs">Blood Pressure:</span>
+                <span className={`text-xs font-semibold ${bpStatus.color}`}>{bpStatus.label}</span>
+              </div>
+            )}
+            
+            {pulseStatus && data.pulse && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs">Pulse Rate:</span>
+                <span className={`text-xs font-semibold ${pulseStatus.color}`}>{pulseStatus.label}</span>
+              </div>
+            )}
+            
+            {spo2Status && data.spo2 && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs">SpO2:</span>
+                <span className={`text-xs font-semibold ${spo2Status.color}`}>{spo2Status.label}</span>
+              </div>
+            )}
+            
+            {tempStatus && data.temperature && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs">Temperature:</span>
+                <span className={`text-xs font-semibold ${tempStatus.color}`}>{tempStatus.label}</span>
+              </div>
+            )}
+          </div>
+          
+          {data.patientId && (
+            <div className="mt-2 pt-2 border-t text-xs text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>EHR ID: {data.patientId}</span>
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Recorded: {new Date(data.start_time || '').toLocaleString()}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
@@ -214,40 +292,7 @@ export function VitalsDashboard({
   // We'll use dummy data in that case
 
   // Render the chart based on the selected chart type
-  const renderChart = (
-    dataKey: string, 
-    stroke: string, 
-    name: string, 
-    yAxisId?: string,
-    domain?: [number, number] | [string, string]
-  ) => {
-    if (chartType === "line") {
-      return (
-        <Line 
-          type="monotone" 
-          dataKey={dataKey} 
-          stroke={stroke} 
-          name={name} 
-          strokeWidth={2}
-          yAxisId={yAxisId} 
-        />
-      );
-    } else if (chartType === "bar") {
-      return <Bar dataKey={dataKey} fill={stroke} name={name} yAxisId={yAxisId} />;
-    } else if (chartType === "area") {
-      return (
-        <Area 
-          type="monotone" 
-          dataKey={dataKey} 
-          stroke={stroke} 
-          fill={`${stroke}33`} 
-          name={name}
-          yAxisId={yAxisId}
-        />
-      );
-    }
-    return null;
-  };
+  // Removed unused renderChart function
 
   return (
     <div className="space-y-6">
