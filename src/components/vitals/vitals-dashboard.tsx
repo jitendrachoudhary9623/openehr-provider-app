@@ -2,7 +2,11 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { type VitalsResponse } from "@/services/vitals";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { 
+  LineChart, Line, BarChart, Bar, AreaChart, Area, 
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
+} from 'recharts';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
@@ -73,6 +77,7 @@ export function VitalsDashboard({
 }: VitalsDashboardProps) {
   const [activeTab, setActiveTab] = useState("all");
   const [viewMode, setViewMode] = useState<"chart" | "table">("chart");
+  const [chartType, setChartType] = useState<"line" | "bar" | "area">("line");
   const [chartData, setChartData] = useState<ChartDataItem[]>([]);
 
   // Determine which data set to use based on the toggle
@@ -84,7 +89,9 @@ export function VitalsDashboard({
       console.log("All compositions data:", allCompositions);
       console.log("Templates in all compositions:", [...new Set(allCompositions.map(comp => comp.templateId))]);
     }
-  }, [showAllData, allCompositions]);
+    console.log("Chart data:", chartData);
+    console.log("Data to use:", dataToUse);
+  }, [showAllData, allCompositions, chartData, dataToUse]);
 
   useEffect(() => {
     if (dataToUse.length === 0) return;
@@ -158,7 +165,7 @@ export function VitalsDashboard({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList>
             <TabsTrigger value="all">All Vitals</TabsTrigger>
@@ -170,12 +177,27 @@ export function VitalsDashboard({
           </TabsList>
         </Tabs>
         
-        <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "chart" | "table")}>
-          <TabsList>
-            <TabsTrigger value="chart">Chart View</TabsTrigger>
-            <TabsTrigger value="table">Table View</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-4">
+          {viewMode === "chart" && (
+            <Select value={chartType} onValueChange={(value) => setChartType(value as "line" | "bar" | "area")}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Chart Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="line">Line Chart</SelectItem>
+                <SelectItem value="bar">Bar Chart</SelectItem>
+                <SelectItem value="area">Area Chart</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+          
+          <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "chart" | "table")}>
+            <TabsList>
+              <TabsTrigger value="chart">Chart View</TabsTrigger>
+              <TabsTrigger value="table">Table View</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
 
       {viewMode === "table" && (
@@ -322,15 +344,39 @@ export function VitalsDashboard({
               </CardHeader>
               <CardContent className="h-[500px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Legend />
-                    <Line type="monotone" dataKey="systolic" stroke="#ef4444" name="Systolic" strokeWidth={2} />
-                    <Line type="monotone" dataKey="diastolic" stroke="#3b82f6" name="Diastolic" strokeWidth={2} />
-                  </LineChart>
+                  {chartType === "line" && (
+                    <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      <Line type="monotone" dataKey="systolic" stroke="#ef4444" name="Systolic" strokeWidth={2} />
+                      <Line type="monotone" dataKey="diastolic" stroke="#3b82f6" name="Diastolic" strokeWidth={2} />
+                    </LineChart>
+                  )}
+                  {chartType === "bar" && (
+                    <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      <Bar dataKey="systolic" fill="#ef4444" name="Systolic" />
+                      <Bar dataKey="diastolic" fill="#3b82f6" name="Diastolic" />
+                    </BarChart>
+                  )}
+                  {chartType === "area" && (
+                    <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      <Area type="monotone" dataKey="systolic" stroke="#ef4444" fill="#ef444433" name="Systolic" />
+                      <Area type="monotone" dataKey="diastolic" stroke="#3b82f6" fill="#3b82f633" name="Diastolic" />
+                    </AreaChart>
+                  )}
                 </ResponsiveContainer>
               </CardContent>
             </Card>
@@ -343,14 +389,36 @@ export function VitalsDashboard({
               </CardHeader>
               <CardContent className="h-[500px]">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Legend />
-                    <Line type="monotone" dataKey="pulse" stroke="#f97316" name="Pulse Rate (bpm)" strokeWidth={2} />
-                  </LineChart>
+                  {chartType === "line" && (
+                    <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      <Line type="monotone" dataKey="pulse" stroke="#f97316" name="Pulse Rate (bpm)" strokeWidth={2} />
+                    </LineChart>
+                  )}
+                  {chartType === "bar" && (
+                    <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      <Bar dataKey="pulse" fill="#f97316" name="Pulse Rate (bpm)" />
+                    </BarChart>
+                  )}
+                  {chartType === "area" && (
+                    <AreaChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      <Area type="monotone" dataKey="pulse" stroke="#f97316" fill="#f9731633" name="Pulse Rate (bpm)" />
+                    </AreaChart>
+                  )}
                 </ResponsiveContainer>
               </CardContent>
             </Card>
