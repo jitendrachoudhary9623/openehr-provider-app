@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import {
   Select,
   SelectContent,
@@ -74,7 +75,9 @@ export function EditPatient() {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [vitalsHistory, setVitalsHistory] = useState<VitalsResponse[]>([])
+  const [allVitalsData, setAllVitalsData] = useState<VitalsResponse[]>([])
   const [isLoadingVitals, setIsLoadingVitals] = useState(false)
+  const [showAllData, setShowAllData] = useState(false)
   const [selectedVitals, setSelectedVitals] = useState<VitalsResponse | undefined>()
   const [vitalsToDelete, setVitalsToDelete] = useState<VitalsResponse | undefined>()
   const [selectedTemplate, setSelectedTemplate] = useState<string>("jitendra.choudhary.vitals.v1")
@@ -97,6 +100,7 @@ export function EditPatient() {
     emergencyContact: defaultEmergencyContact
   })
 
+  // Load patient-specific vitals
   const loadVitals = useCallback(async (ehrId: string) => {
     try {
       setIsLoadingVitals(true)
@@ -113,6 +117,53 @@ export function EditPatient() {
       setIsLoadingVitals(false)
     }
   }, [toast, selectedTemplate])
+  
+  // Load all vitals data for comparison
+  const loadAllVitals = useCallback(async () => {
+    try {
+      // This is a mock implementation - in a real app, you would fetch all vitals from all patients
+      // For demo purposes, we're just duplicating the current patient's vitals with modified values
+      if (vitalsHistory.length > 0) {
+        const mockAllVitals = vitalsHistory.map(vital => {
+          // Create a copy with slightly different values to simulate other patients' data
+          const newVital = {...vital};
+          
+          // Modify blood pressure if it exists
+          if (newVital.blood_pressure) {
+            newVital.blood_pressure = {
+              ...newVital.blood_pressure,
+              systolic: {
+                ...newVital.blood_pressure.systolic,
+                magnitude: Math.floor(newVital.blood_pressure.systolic.magnitude * (0.9 + Math.random() * 0.3))
+              },
+              diastolic: {
+                ...newVital.blood_pressure.diastolic,
+                magnitude: Math.floor(newVital.blood_pressure.diastolic.magnitude * (0.9 + Math.random() * 0.3))
+              }
+            };
+          }
+          
+          // Modify pulse if it exists
+          if (newVital.pulse) {
+            newVital.pulse = {
+              ...newVital.pulse,
+              rate: Math.floor(newVital.pulse.rate * (0.9 + Math.random() * 0.3))
+            };
+          }
+          
+          // Add a different patient ID
+          newVital.patient_id = `mock-patient-${Math.floor(Math.random() * 1000)}`;
+          
+          return newVital;
+        });
+        
+        // Add the current patient's vitals to the mix
+        setAllVitalsData([...vitalsHistory, ...mockAllVitals]);
+      }
+    } catch (error) {
+      console.error('Error loading all vitals:', error);
+    }
+  }, [vitalsHistory]);
 
   useEffect(() => {
     if (id) {
@@ -143,6 +194,13 @@ export function EditPatient() {
       loadVitals(formData.ehrId);
     }
   }, [selectedTemplate, formData.ehrId, loadVitals]);
+  
+  // Load all vitals data when dashboard tab is selected and toggle is switched
+  useEffect(() => {
+    if (activeTab === "dashboard" && showAllData) {
+      loadAllVitals();
+    }
+  }, [activeTab, showAllData, loadAllVitals]);
 
   // Load template data when selected template changes
   useEffect(() => {
@@ -348,8 +406,20 @@ export function EditPatient() {
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6">
+          <div className="flex items-center space-x-2 mb-4">
+            <Switch 
+              id="data-toggle" 
+              checked={showAllData}
+              onCheckedChange={setShowAllData}
+            />
+            <Label htmlFor="data-toggle" className="cursor-pointer">
+              {showAllData ? "Showing all patients' data" : "Showing current patient's data only"}
+            </Label>
+          </div>
+          
           <VitalsDashboard
             compositions={vitalsHistory}
+            allCompositions={allVitalsData}
             isLoading={isLoadingVitals}
           />
         </TabsContent>

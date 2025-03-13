@@ -156,6 +156,7 @@ export interface VitalsComposition {
 
 export interface VitalsResponse extends VitalsData {
   [key: string]: unknown;
+  templateId?: string;
 }
 
 export async function deleteVitalsComposition(ehrId: string, uid: string) {
@@ -297,6 +298,7 @@ export async function getVitalsCompositions(
     return {
       uid: composition.uid.value,
       start_time: composition.context.start_time.value,
+      templateId: composition.archetype_details.template_id.value,
       category: {
         terminology: composition.category.defining_code.terminology_id.value,
         code: composition.category.defining_code.code_string,

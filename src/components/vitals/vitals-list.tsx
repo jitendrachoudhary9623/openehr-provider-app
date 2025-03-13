@@ -175,6 +175,7 @@ export function VitalsList({ compositions, onEdit, onDelete, isLoading }: Vitals
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
+              <TableHead>Template ID</TableHead>
               <TableHead className="w-[100px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -261,6 +262,11 @@ export function VitalsList({ compositions, onEdit, onDelete, isLoading }: Vitals
                         </>
                       ) : '-'}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="font-mono text-xs">
+                      {composition.templateId || 'Unknown'}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
