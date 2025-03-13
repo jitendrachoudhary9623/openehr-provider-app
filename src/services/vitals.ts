@@ -269,12 +269,14 @@ export async function getVitalsCompositions(
     `;
   }
   
-  // Add templateId condition if provided
+  // Add templateId condition if provided and not fetching all templates
   if (templateId) {
     aql += `
     AND c/archetype_details/template_id/value = '${templateId}'
     `;
   }
+  
+  console.log("Executing AQL query:", aql);
 
   const response = await fetch(
     `${OPENEHR_BASE_URL}/query/aql`,

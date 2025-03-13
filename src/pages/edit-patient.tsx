@@ -357,12 +357,18 @@ export function EditPatient() {
                 <span className="font-mono text-sm">Patient ID: {id}</span>
               </div>
             )}
-            {formData.ehrId && (
-              <div className="flex items-center gap-2 p-2 bg-muted rounded-md max-w-fit">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                <span className="font-mono text-sm">EHR ID: {formData.ehrId}</span>
+            <div className="flex items-center gap-2 p-2 bg-muted rounded-md max-w-fit">
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-sm">EHR ID:</span>
+                <Input 
+                  className="h-6 w-64 font-mono text-sm"
+                  value={formData.ehrId || ''}
+                  onChange={(e) => handleInputChange('ehrId', e.target.value)}
+                  placeholder="Enter EHR ID"
+                />
               </div>
-            )}
+            </div>
           </div>
         </div>
         <div className="flex gap-3">
@@ -384,21 +390,49 @@ export function EditPatient() {
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-6">
-          <div className="flex items-center space-x-2 mb-4">
-            <Switch 
-              id="data-toggle" 
-              checked={showAllData}
-              onCheckedChange={setShowAllData}
-            />
-            <Label htmlFor="data-toggle" className="cursor-pointer">
-              {showAllData ? "Showing all patients' data" : "Showing current patient's data only"}
-            </Label>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center space-x-2">
+              <Switch 
+                id="data-toggle" 
+                checked={showAllData}
+                onCheckedChange={setShowAllData}
+              />
+              <Label htmlFor="data-toggle" className="cursor-pointer">
+                {showAllData ? "Showing data from all templates" : "Showing selected template data only"}
+              </Label>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                if (formData.ehrId) {
+                  if (showAllData) {
+                    loadAllVitals(formData.ehrId);
+                  } else {
+                    loadVitals(formData.ehrId);
+                  }
+                  toast({
+                    title: "Refreshed",
+                    description: "Vitals data has been refreshed",
+                  });
+                } else {
+                  toast({
+                    title: "Error",
+                    description: "No EHR ID found. Please enter an EHR ID first.",
+                    variant: "destructive",
+                  });
+                }
+              }}
+            >
+              Refresh Data
+            </Button>
           </div>
           
           <VitalsDashboard
             compositions={vitalsHistory}
             allCompositions={allVitalsData}
             isLoading={isLoadingVitals}
+            showAllData={showAllData}
           />
         </TabsContent>
 
