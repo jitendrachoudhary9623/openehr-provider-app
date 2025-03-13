@@ -9,12 +9,15 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { TemplateSelector } from "@/components/vitals/template-selector";
 
 interface VitalsDashboardProps {
   compositions: VitalsResponse[];
   isLoading: boolean;
   allCompositions?: VitalsResponse[];
   showAllData?: boolean;
+  selectedTemplate: string;
+  onTemplateChange: (template: string) => void;
 }
 
 type ChartDataItem = {
@@ -73,7 +76,9 @@ export function VitalsDashboard({
   compositions, 
   isLoading,
   allCompositions,
-  showAllData = false
+  showAllData = false,
+  selectedTemplate,
+  onTemplateChange
 }: VitalsDashboardProps) {
   const [activeTab, setActiveTab] = useState("all");
   const [viewMode, setViewMode] = useState<"chart" | "table">("chart");
@@ -247,16 +252,33 @@ export function VitalsDashboard({
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
-            <TabsTrigger value="all">All Vitals</TabsTrigger>
-            <TabsTrigger value="blood-pressure">Blood Pressure</TabsTrigger>
-            <TabsTrigger value="pulse">Pulse Rate</TabsTrigger>
-            <TabsTrigger value="spo2">SpO2</TabsTrigger>
-            <TabsTrigger value="temperature">Temperature</TabsTrigger>
-            <TabsTrigger value="body">Height & Weight</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex flex-col gap-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList>
+              <TabsTrigger value="all">All Vitals</TabsTrigger>
+              <TabsTrigger value="blood-pressure">Blood Pressure</TabsTrigger>
+              <TabsTrigger value="pulse">Pulse Rate</TabsTrigger>
+              <TabsTrigger value="spo2">SpO2</TabsTrigger>
+              <TabsTrigger value="temperature">Temperature</TabsTrigger>
+              <TabsTrigger value="body">Height & Weight</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          
+          <div className="w-full max-w-xs">
+            {!showAllData ? (
+              <TemplateSelector
+                value={selectedTemplate}
+                onChange={onTemplateChange}
+                className="w-full"
+              />
+            ) : (
+              <div className="flex items-center p-2 border rounded-md bg-muted">
+                <Badge variant="outline" className="mr-2">All Templates</Badge>
+                <span className="text-sm text-muted-foreground">Showing data from all templates</span>
+              </div>
+            )}
+          </div>
+        </div>
         
         <div className="flex items-center gap-4">
           {viewMode === "chart" && (

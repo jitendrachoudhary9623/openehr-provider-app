@@ -433,6 +433,8 @@ export function EditPatient() {
             allCompositions={allVitalsData}
             isLoading={isLoadingVitals}
             showAllData={showAllData}
+            selectedTemplate={selectedTemplate}
+            onTemplateChange={setSelectedTemplate}
           />
         </TabsContent>
 
