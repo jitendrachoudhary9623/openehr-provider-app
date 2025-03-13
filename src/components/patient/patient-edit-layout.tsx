@@ -4,6 +4,7 @@ import { PatientBanner } from "./patient-banner"
 import { PatientEditSidebar } from "./patient-edit-sidebar"
 import { VitalsForm } from "../vitals/vitals-form"
 import { VitalsList } from "../vitals/vitals-list"
+import { VitalsDashboard } from "../vitals/vitals-dashboard"
 import { Card } from "@/components/ui/card"
 
 interface PatientEditLayoutProps {
@@ -53,6 +54,15 @@ export function PatientEditLayout({
                 onDelete={onDeleteVitals}
               />
             </div>
+          </div>
+        )
+      case "dashboard":
+        return (
+          <div className="container max-w-full space-y-6">
+            <VitalsDashboard
+              compositions={vitalsData || []}
+              isLoading={false}
+            />
           </div>
         )
       case "demographics":

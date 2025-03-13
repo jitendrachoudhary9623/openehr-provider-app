@@ -41,6 +41,7 @@ import { FileText, TrendingUp, TrendingDown, Minus } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { VitalsForm } from "@/components/vitals/vitals-form"
 import { VitalsList } from "@/components/vitals/vitals-list"
+import { VitalsDashboard } from "@/components/vitals/vitals-dashboard"
 import "medblocks-ui"
 import "medblocks-ui/dist/shoelace"
 import { 
@@ -304,6 +305,7 @@ export function EditPatient() {
           <TabsTrigger value="contact">Contact & Emergency</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
           <TabsTrigger value="vitals">Vitals</TabsTrigger>
+          <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-6">
@@ -563,6 +565,13 @@ export function EditPatient() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="dashboard" className="space-y-6">
+          <VitalsDashboard
+            compositions={vitalsHistory}
+            isLoading={isLoadingVitals}
+          />
         </TabsContent>
 
         <TabsContent value="vitals" className="space-y-6">

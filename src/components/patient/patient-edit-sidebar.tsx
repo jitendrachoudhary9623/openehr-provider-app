@@ -11,6 +11,7 @@ import {
   Pill,
   ChevronLeft,
   ChevronRight,
+  TrendingUp,
 } from "lucide-react"
 import { useState } from "react"
 
@@ -36,6 +37,7 @@ export function PatientEditSidebar({
   const sections = [
     { id: "demographics", name: "Demographics", icon: User },
     { id: "vitals", name: "Vitals", icon: Activity },
+    { id: "dashboard", name: "Dashboard", icon: TrendingUp },
     { id: "history", name: "Medical History", icon: History },
     { id: "allergies", name: "Allergies", icon: Heart },
     { id: "medications", name: "Medications", icon: Pill },
