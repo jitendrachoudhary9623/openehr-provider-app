@@ -251,57 +251,113 @@ export function VitalsDashboard({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex flex-col gap-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList>
-              <TabsTrigger value="all">All Vitals</TabsTrigger>
-              <TabsTrigger value="blood-pressure">Blood Pressure</TabsTrigger>
-              <TabsTrigger value="pulse">Pulse Rate</TabsTrigger>
-              <TabsTrigger value="spo2">SpO2</TabsTrigger>
-              <TabsTrigger value="temperature">Temperature</TabsTrigger>
-              <TabsTrigger value="body">Height & Weight</TabsTrigger>
-            </TabsList>
-          </Tabs>
+      <Card className="p-4 shadow-lg border-t-4 border-t-primary">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex flex-col gap-4">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-primary">Vitals Dashboard</h3>
+              <p className="text-sm text-muted-foreground">Monitor patient vitals data and trends over time</p>
+            </div>
+            
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-2">
+              <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full">
+                <TabsTrigger value="all" className="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-activity"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                  All Vitals
+                </TabsTrigger>
+                <TabsTrigger value="blood-pressure" className="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-heart-pulse"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4 .5-1h6.78"/></svg>
+                  BP
+                </TabsTrigger>
+                <TabsTrigger value="pulse" className="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-heart"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                  Pulse
+                </TabsTrigger>
+                <TabsTrigger value="spo2" className="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-lungs"><path d="M6.081 20c-2.163-.573-4.35-1.184-5.376-3.691A5.5 5.5 0 0 1 2.81 8.373C3.922 6.087 6.083 5.074 8.5 4.5"/><path d="M17.92 20c2.164-.573 4.35-1.184 5.376-3.691a5.5 5.5 0 0 0-2.105-7.936c-1.112-2.286-3.273-3.3-5.69-3.873"/><path d="M8.5 4.5V4a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v.5"/><path d="M8.5 9v11"/><path d="M15.5 9v11"/></svg>
+                  SpO2
+                </TabsTrigger>
+                <TabsTrigger value="temperature" className="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-thermometer"><path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/></svg>
+                  Temp
+                </TabsTrigger>
+                <TabsTrigger value="body" className="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-ruler"><path d="M21.3 8.7 8.7 21.3c-1 1-2.5 1-3.4 0l-2.6-2.6c-1-1-1-2.5 0-3.4L15.3 2.7c1-1 2.5-1 3.4 0l2.6 2.6c1 1 1 2.5 0 3.4Z"/><path d="m7.5 10.5 2 2"/><path d="m10.5 7.5 2 2"/><path d="m13.5 4.5 2 2"/><path d="m4.5 13.5 2 2"/></svg>
+                  Body
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
+            <div className="w-full max-w-xs">
+              {!showAllData ? (
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Selected Template</label>
+                  <TemplateSelector
+                    value={selectedTemplate}
+                    onChange={onTemplateChange}
+                    className="w-full"
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center p-3 border rounded-md bg-muted/50 shadow-sm">
+                  <Badge variant="secondary" className="mr-2 bg-primary/10 hover:bg-primary/20 text-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-layers mr-1"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 12.5-8.58 3.91a2 2 0 0 1-1.66 0L2.6 12.5"/><path d="m22 17.5-8.58 3.91a2 2 0 0 1-1.66 0L2.6 17.5"/></svg>
+                    All Templates
+                  </Badge>
+                  <span className="text-sm text-muted-foreground">Showing aggregated data</span>
+                </div>
+              )}
+            </div>
+          </div>
           
-          <div className="w-full max-w-xs">
-            {!showAllData ? (
-              <TemplateSelector
-                value={selectedTemplate}
-                onChange={onTemplateChange}
-                className="w-full"
-              />
-            ) : (
-              <div className="flex items-center p-2 border rounded-md bg-muted">
-                <Badge variant="outline" className="mr-2">All Templates</Badge>
-                <span className="text-sm text-muted-foreground">Showing data from all templates</span>
+          <div className="flex items-center gap-4">
+            {viewMode === "chart" && (
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">Chart Type</label>
+                <div className="flex items-center gap-2">
+                  <button 
+                    className={`p-2 rounded-md flex items-center gap-1 ${chartType === 'line' ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}`}
+                    onClick={() => setChartType('line')}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    <span className="text-sm">Line</span>
+                  </button>
+                  <button 
+                    className={`p-2 rounded-md flex items-center gap-1 ${chartType === 'bar' ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}`}
+                    onClick={() => setChartType('bar')}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>
+                    <span className="text-sm">Bar</span>
+                  </button>
+                  <button 
+                    className={`p-2 rounded-md flex items-center gap-1 ${chartType === 'area' ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/80'}`}
+                    onClick={() => setChartType('area')}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="M3 15 9 9l4 4 8-8"/><path d="m3 11 6-6 4 4 8-8"/></svg>
+                    <span className="text-sm">Area</span>
+                  </button>
+                </div>
               </div>
             )}
+            
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-muted-foreground">View Mode</label>
+              <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "chart" | "table")}>
+                <TabsList>
+                  <TabsTrigger value="chart" className="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-bar-chart-3"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
+                    Chart
+                  </TabsTrigger>
+                  <TabsTrigger value="table" className="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-table-2"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+                    Table
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </div>
         </div>
-        
-        <div className="flex items-center gap-4">
-          {viewMode === "chart" && (
-            <Select value={chartType} onValueChange={(value) => setChartType(value as "line" | "bar" | "area")}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Chart Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="line">Line Chart</SelectItem>
-                <SelectItem value="bar">Bar Chart</SelectItem>
-                <SelectItem value="area">Area Chart</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-          
-          <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as "chart" | "table")}>
-            <TabsList>
-              <TabsTrigger value="chart">Chart View</TabsTrigger>
-              <TabsTrigger value="table">Table View</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
-      </div>
+      </Card>
 
       {viewMode === "table" && (
         <Card>
@@ -380,11 +436,15 @@ export function VitalsDashboard({
       {viewMode === "chart" && (
         <Tabs value={activeTab} className="mt-4">
           <TabsContent value="all" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Blood Pressure Trends</CardTitle>
+            <Card className="shadow-md hover:shadow-lg transition-all duration-200 border-l-4 border-l-red-500">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4 .5-1h6.78"/></svg>
+                  Blood Pressure Trends
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">Systolic and diastolic pressure over time</p>
               </CardHeader>
-              <CardContent className="h-[400px]">
+              <CardContent className="h-[400px] pt-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />

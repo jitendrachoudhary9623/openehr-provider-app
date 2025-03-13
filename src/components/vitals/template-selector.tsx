@@ -37,7 +37,14 @@ export function TemplateSelector({ value, onChange, className = "" }: TemplateSe
         );
         
         // Combine templates with local templates first
-        const allTemplates = [...localTemplates, ...filteredApiTemplates];
+        let allTemplates = [...localTemplates, ...filteredApiTemplates];
+        
+        // Ensure jitendra.choudhary.vitals.v1 is first in the list
+        allTemplates = allTemplates.sort((a, b) => {
+          if (a.templateId === "jitendra.choudhary.vitals.v1") return -1;
+          if (b.templateId === "jitendra.choudhary.vitals.v1") return 1;
+          return 0;
+        });
         setTemplates(allTemplates);
       } catch (error) {
         console.error("Error loading templates:", error);
