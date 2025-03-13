@@ -252,16 +252,29 @@ export async function updateVitalsComposition(
 }
 
 export async function getVitalsCompositions(
-  ehrId: string,
-  templateId: string = 'jitendra.choudhary.vitals.v1'
+  ehrId?: string,
+  templateId?: string
 ) {
-  const aql = `
+  // Build the AQL query based on the parameters
+  let aql = `
     SELECT c 
     FROM EHR e 
     CONTAINS COMPOSITION c 
-    WHERE e/ehr_id/value = '${ehrId}' 
-    AND c/archetype_details/template_id/value = '${templateId}'
   `;
+  
+  // Add ehrId condition if provided
+  if (ehrId) {
+    aql += `
+    WHERE e/ehr_id/value = '${ehrId}'
+    `;
+  }
+  
+  // Add templateId condition if provided
+  if (templateId) {
+    aql += `
+    AND c/archetype_details/template_id/value = '${templateId}'
+    `;
+  }
 
   const response = await fetch(
     `${OPENEHR_BASE_URL}/query/aql`,

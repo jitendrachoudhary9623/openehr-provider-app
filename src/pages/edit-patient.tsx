@@ -119,51 +119,23 @@ export function EditPatient() {
   }, [toast, selectedTemplate])
   
   // Load all vitals data for comparison
-  const loadAllVitals = useCallback(async () => {
+  const loadAllVitals = useCallback(async (ehrId: string) => {
     try {
-      // This is a mock implementation - in a real app, you would fetch all vitals from all patients
-      // For demo purposes, we're just duplicating the current patient's vitals with modified values
-      if (vitalsHistory.length > 0) {
-        const mockAllVitals = vitalsHistory.map(vital => {
-          // Create a copy with slightly different values to simulate other patients' data
-          const newVital = {...vital};
-          
-          // Modify blood pressure if it exists
-          if (newVital.blood_pressure) {
-            newVital.blood_pressure = {
-              ...newVital.blood_pressure,
-              systolic: {
-                ...newVital.blood_pressure.systolic,
-                magnitude: Math.floor(newVital.blood_pressure.systolic.magnitude * (0.9 + Math.random() * 0.3))
-              },
-              diastolic: {
-                ...newVital.blood_pressure.diastolic,
-                magnitude: Math.floor(newVital.blood_pressure.diastolic.magnitude * (0.9 + Math.random() * 0.3))
-              }
-            };
-          }
-          
-          // Modify pulse if it exists
-          if (newVital.pulse) {
-            newVital.pulse = {
-              ...newVital.pulse,
-              rate: Math.floor(newVital.pulse.rate * (0.9 + Math.random() * 0.3))
-            };
-          }
-          
-          // Add a different patient ID
-          newVital.patient_id = `mock-patient-${Math.floor(Math.random() * 1000)}`;
-          
-          return newVital;
-        });
-        
-        // Add the current patient's vitals to the mix
-        setAllVitalsData([...vitalsHistory, ...mockAllVitals]);
-      }
+      setIsLoadingVitals(true);
+      // Fetch all vitals data from all templates for this patient
+      const allVitals = await getVitalsCompositions(ehrId);
+      setAllVitalsData(allVitals);
     } catch (error) {
       console.error('Error loading all vitals:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load all vitals data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingVitals(false);
     }
-  }, [vitalsHistory]);
+  }, [toast]);
 
   useEffect(() => {
     if (id) {
@@ -195,12 +167,18 @@ export function EditPatient() {
     }
   }, [selectedTemplate, formData.ehrId, loadVitals]);
   
-  // Load all vitals data when dashboard tab is selected and toggle is switched
+  // Load appropriate vitals data when dashboard tab is selected or toggle is switched
   useEffect(() => {
-    if (activeTab === "dashboard" && showAllData) {
-      loadAllVitals();
+    if (activeTab === "dashboard" && formData.ehrId) {
+      if (showAllData) {
+        // Load all templates data for this patient when toggle is on
+        loadAllVitals(formData.ehrId);
+      } else {
+        // Load only current patient's data with selected template when toggle is off
+        loadVitals(formData.ehrId);
+      }
     }
-  }, [activeTab, showAllData, loadAllVitals]);
+  }, [activeTab, showAllData, formData.ehrId, loadVitals, loadAllVitals]);
 
   // Load template data when selected template changes
   useEffect(() => {
