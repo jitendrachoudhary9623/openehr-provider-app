@@ -347,13 +347,6 @@ export function EditPatient() {
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="dashboard" className="space-y-6">
-          <VitalsDashboard
-            compositions={vitalsHistory}
-            isLoading={isLoadingVitals}
-          />
-        </TabsContent>
-
         <TabsContent value="general" className="space-y-6">
           <Card>
             <CardHeader>
@@ -613,6 +606,13 @@ export function EditPatient() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="dashboard" className="space-y-6">
+          <VitalsDashboard
+            compositions={vitalsHistory}
+            isLoading={isLoadingVitals}
+          />
+        </TabsContent>
+
         <TabsContent value="vitals" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <Card className="hover:shadow-lg transition-all duration-200 group">
@@ -637,7 +637,7 @@ export function EditPatient() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold group-hover:text-primary transition-colors">
+                <div className="text-2xl font-bold group-hover:text-[rgb(37_99_235/var(--tw-bg-opacity,1))] transition-colors">
                   {vitalsHistory[0]?.blood_pressure ? 
                     `${vitalsHistory[0].blood_pressure.systolic.magnitude}/${vitalsHistory[0].blood_pressure.diastolic.magnitude} mmHg` : 
                     'No data'
@@ -681,7 +681,7 @@ export function EditPatient() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold group-hover:text-primary transition-colors">
+                <div className="text-2xl font-bold group-hover:text-[rgb(37_99_235/var(--tw-bg-opacity,1))] transition-colors">
                   {vitalsHistory[0]?.spo2 ? 
                     `${(vitalsHistory[0].spo2.numerator / vitalsHistory[0].spo2.denominator * 100).toFixed(0)}%` : 
                     'No data'
@@ -725,7 +725,7 @@ export function EditPatient() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold group-hover:text-primary transition-colors">
+                <div className="text-2xl font-bold group-hover:text-[rgb(37_99_235/var(--tw-bg-opacity,1))] transition-colors">
                   {vitalsHistory[0]?.pulse ? 
                     `${vitalsHistory[0].pulse.rate} bpm` : 
                     'No data'
@@ -754,75 +754,5 @@ export function EditPatient() {
               </CardContent>
             </Card>
           </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            <div className="vitals-form md:sticky md:top-6 md:col-span-2 space-y-4 p-4 rounded-lg border">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">
-                  {selectedVitals ? "Edit Vitals" : "Add New Vitals"}
-                </h3>
-                {selectedVitals && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setSelectedVitals(undefined)}
-                  >
-                    Cancel
-                  </Button>
-                )}
-              </div>
-              
-              <TemplateSelector
-                value={selectedTemplate}
-                onChange={setSelectedTemplate}
-                className="mb-4"
-              />
-              
-              <VitalsForm
-                initialData={selectedVitals}
-                template={templateData}
-                onSave={handleSaveVitals}
-              />
-            </div>
-            
-            <div className="md:col-span-3">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Vitals History</CardTitle>
-                  <CardDescription>
-                    Previous vitals measurements for this patient
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <VitalsList
-                    compositions={vitalsHistory}
-                    isLoading={isLoadingVitals}
-                    onEdit={handleEditVitals}
-                    onDelete={handleDeleteVitals}
-                  />
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      {vitalsToDelete && (
-        <AlertDialog open={!!vitalsToDelete} onOpenChange={() => setVitalsToDelete(undefined)}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the vitals record.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-    </div>
-  )
-}
+            <div className="vitals-form md:sticky md:top-6 md:col-span-2

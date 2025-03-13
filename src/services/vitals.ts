@@ -174,9 +174,9 @@ export async function deleteVitalsComposition(ehrId: string, uid: string) {
   }
 }
 
-export async function saveVitalsComposition(ehrId: string, composition: VitalsComposition) {
+export async function saveVitalsComposition(ehrId: string, composition: VitalsComposition, templateId: string = 'jitendra.choudhary.vitals.v1') {
   const response = await fetch(
-    `${OPENEHR_BASE_URL}/ehr/${ehrId}/composition?templateId=jitendra.choudhary.vitals.v1`,
+    `${OPENEHR_BASE_URL}/ehr/${ehrId}/composition?templateId=${templateId}`,
     {
       method: 'POST',
       headers: {
@@ -216,7 +216,12 @@ export async function getVitalsCompositionFlat(ehrId: string, uid: string) {
   return data;
 }
 
-export async function updateVitalsComposition(ehrId: string, uid: string, composition: VitalsComposition) {
+export async function updateVitalsComposition(
+  ehrId: string, 
+  uid: string, 
+  composition: VitalsComposition, 
+  templateId: string = 'jitendra.choudhary.vitals.v1'
+) {
   // Extract the UUID part from the versioned object UID
   const versionedObjectUid = uid.split('::')[0];
   
@@ -224,7 +229,7 @@ export async function updateVitalsComposition(ehrId: string, uid: string, compos
   const { ...compositionData } = composition;
   delete compositionData.uid
   const response = await fetch(
-    `${OPENEHR_BASE_URL}/ehr/${ehrId}/composition/${versionedObjectUid}?templateId=jitendra.choudhary.vitals.v1`,
+    `${OPENEHR_BASE_URL}/ehr/${ehrId}/composition/${versionedObjectUid}?templateId=${templateId}`,
     {
       method: 'PUT',
       headers: {
@@ -245,13 +250,16 @@ export async function updateVitalsComposition(ehrId: string, uid: string, compos
   return data;
 }
 
-export async function getVitalsCompositions(ehrId: string) {
+export async function getVitalsCompositions(
+  ehrId: string,
+  templateId: string = 'jitendra.choudhary.vitals.v1'
+) {
   const aql = `
     SELECT c 
     FROM EHR e 
     CONTAINS COMPOSITION c 
     WHERE e/ehr_id/value = '${ehrId}' 
-    AND c/archetype_details/template_id/value = 'jitendra.choudhary.vitals.v1'
+    AND c/archetype_details/template_id/value = '${templateId}'
   `;
 
   const response = await fetch(
