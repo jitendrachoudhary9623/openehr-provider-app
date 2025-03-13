@@ -398,12 +398,20 @@ export function EditPatient() {
                 onCheckedChange={setShowAllData}
               />
               <Label htmlFor="data-toggle" className="cursor-pointer">
-                {showAllData ? "Showing data from all templates" : "Showing selected template data only"}
+                {showAllData 
+                  ? "Showing data from all templates" 
+                  : (
+                    <span className="flex items-center gap-1">
+                      Showing data from <Badge variant="outline" className="font-mono text-xs">{selectedTemplate}</Badge>
+                    </span>
+                  )
+                }
               </Label>
             </div>
             <Button 
               variant="outline" 
               size="sm"
+              className="flex items-center gap-2"
               onClick={() => {
                 if (formData.ehrId) {
                   if (showAllData) {
@@ -413,7 +421,9 @@ export function EditPatient() {
                   }
                   toast({
                     title: "Refreshed",
-                    description: "Vitals data has been refreshed",
+                    description: showAllData 
+                      ? "All templates data has been refreshed" 
+                      : `Data for template "${selectedTemplate}" has been refreshed`,
                   });
                 } else {
                   toast({

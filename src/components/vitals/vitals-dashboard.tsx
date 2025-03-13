@@ -6,7 +6,7 @@ import {
   LineChart, Line, BarChart, Bar, AreaChart, Area, 
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
 } from 'recharts';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+// Removed unused imports
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { TemplateSelector } from "@/components/vitals/template-selector";
@@ -289,24 +289,30 @@ export function VitalsDashboard({
             </Tabs>
             
             <div className="w-full max-w-xs">
-              {!showAllData ? (
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-muted-foreground">Selected Template</label>
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-muted-foreground">
+                  {!showAllData ? "Selected Template" : "Data Source"}
+                </label>
+                
+                {!showAllData ? (
                   <TemplateSelector
                     value={selectedTemplate}
                     onChange={onTemplateChange}
                     className="w-full"
                   />
-                </div>
-              ) : (
-                <div className="flex items-center p-3 border rounded-md bg-muted/50 shadow-sm">
-                  <Badge variant="secondary" className="mr-2 bg-primary/10 hover:bg-primary/20 text-primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-layers mr-1"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 12.5-8.58 3.91a2 2 0 0 1-1.66 0L2.6 12.5"/><path d="m22 17.5-8.58 3.91a2 2 0 0 1-1.66 0L2.6 17.5"/></svg>
-                    All Templates
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">Showing aggregated data</span>
-                </div>
-              )}
+                ) : (
+                  <div className="flex items-center p-3 border rounded-md bg-gradient-to-r from-primary/5 to-primary/10 shadow-sm">
+                    <Badge variant="secondary" className="mr-2 bg-primary/20 hover:bg-primary/30 text-primary font-medium">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-layers mr-1"><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 12.5-8.58 3.91a2 2 0 0 1-1.66 0L2.6 12.5"/><path d="m22 17.5-8.58 3.91a2 2 0 0 1-1.66 0L2.6 17.5"/></svg>
+                      Comprehensive View
+                    </Badge>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium">All Templates Combined</span>
+                      <span className="text-xs text-muted-foreground">Displaying aggregated data across all templates</span>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           
