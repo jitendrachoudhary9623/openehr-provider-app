@@ -6,7 +6,15 @@ import {
   LineChart, Line, BarChart, Bar, AreaChart, Area, 
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
 } from 'recharts';
-// Removed unused imports
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { TemplateSelector } from "@/components/vitals/template-selector";
@@ -67,7 +75,7 @@ const CustomTooltip = ({ active, payload, label }: {
     const getSpO2Status = (spo2?: string) => {
       if (!spo2) return null;
       const value = parseInt(spo2);
-      if (value < 95) return { label: "Low", color: "text-red-500" };
+      if (value < 90) return { label: "Low", color: "text-red-500" };
       return { label: "Normal", color: "text-green-500" };
     };
     
@@ -162,6 +170,10 @@ export function VitalsDashboard({
   const [viewMode, setViewMode] = useState<"chart" | "table">("chart");
   const [chartType, setChartType] = useState<"line" | "bar" | "area">("line");
   const [chartData, setChartData] = useState<ChartDataItem[]>([]);
+  const [filteredData, setFilteredData] = useState<ChartDataItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   // Determine which data set to use based on the toggle
   const dataToUse = showAllData && allCompositions ? allCompositions : compositions;
@@ -411,74 +423,427 @@ export function VitalsDashboard({
       </Card>
 
       {viewMode === "table" && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Vitals Data Table</CardTitle>
+        <Card className="shadow-lg">
+          <CardHeader className="pb-0">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+                  Advanced Vitals Data Table
+                </CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">Comprehensive view with filtering and highlighting</p>
+              </div>
+              
+              <div className="flex flex-wrap gap-2">
+                <div className="flex items-center gap-1 text-xs">
+                  <div className="w-3 h-3 rounded-full bg-red-100 border border-red-500"></div>
+                  <span>High</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs">
+                  <div className="w-3 h-3 rounded-full bg-green-100 border border-green-500"></div>
+                  <span>Normal</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs">
+                  <div className="w-3 h-3 rounded-full bg-amber-100 border border-amber-500"></div>
+                  <span>Low</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs">
+                  <div className="w-3 h-3 rounded-full bg-gray-100 border border-gray-300"></div>
+                  <span>No data</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex flex-wrap gap-2 mt-4">
+              <Input 
+                placeholder="Search..." 
+                className="max-w-xs"
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  
+                  // Filter data based on search term
+                  const filtered = chartData.filter(item => {
+                    const searchLower = e.target.value.toLowerCase();
+                    return (
+                      (item.templateId && item.templateId.toLowerCase().includes(searchLower)) ||
+                      (item.date && item.date.toLowerCase().includes(searchLower)) ||
+                      (item.patientId && item.patientId.toLowerCase().includes(searchLower))
+                    );
+                  });
+                  
+                  setFilteredData(filtered);
+                }}
+              />
+              
+              <Select
+                onValueChange={(value) => {
+                  setSortBy(value);
+                  
+                  // Sort data based on selected option
+                  let sorted = [...chartData];
+                  
+                  // Date sorting options (always available)
+                  if (value === 'date-newest') {
+                    sorted = sorted.sort((a, b) => {
+                      const dateA = new Date(a.start_time || '').getTime();
+                      const dateB = new Date(b.start_time || '').getTime();
+                      return dateB - dateA; // Newest first
+                    });
+                  } else if (value === 'date-oldest') {
+                    sorted = sorted.sort((a, b) => {
+                      const dateA = new Date(a.start_time || '').getTime();
+                      const dateB = new Date(b.start_time || '').getTime();
+                      return dateA - dateB; // Oldest first
+                    });
+                  } 
+                  // Blood pressure sorting
+                  else if (value === 'systolic-high') {
+                    sorted = sorted.sort((a, b) => {
+                      const systolicA = a.systolic || 0;
+                      const systolicB = b.systolic || 0;
+                      return systolicB - systolicA; // High to low
+                    });
+                  } else if (value === 'systolic-low') {
+                    sorted = sorted.sort((a, b) => {
+                      const systolicA = a.systolic || 0;
+                      const systolicB = b.systolic || 0;
+                      return systolicA - systolicB; // Low to high
+                    });
+                  } else if (value === 'diastolic-high') {
+                    sorted = sorted.sort((a, b) => {
+                      const diastolicA = a.diastolic || 0;
+                      const diastolicB = b.diastolic || 0;
+                      return diastolicB - diastolicA; // High to low
+                    });
+                  } else if (value === 'diastolic-low') {
+                    sorted = sorted.sort((a, b) => {
+                      const diastolicA = a.diastolic || 0;
+                      const diastolicB = b.diastolic || 0;
+                      return diastolicA - diastolicB; // Low to high
+                    });
+                  }
+                  // Pulse sorting
+                  else if (value === 'pulse-high') {
+                    sorted = sorted.sort((a, b) => {
+                      const pulseA = a.pulse || 0;
+                      const pulseB = b.pulse || 0;
+                      return pulseB - pulseA; // High to low
+                    });
+                  } else if (value === 'pulse-low') {
+                    sorted = sorted.sort((a, b) => {
+                      const pulseA = a.pulse || 0;
+                      const pulseB = b.pulse || 0;
+                      return pulseA - pulseB; // Low to high
+                    });
+                  }
+                  // SpO2 sorting
+                  else if (value === 'spo2-high') {
+                    sorted = sorted.sort((a, b) => {
+                      const spo2A = a.spo2 ? parseInt(a.spo2) : 0;
+                      const spo2B = b.spo2 ? parseInt(b.spo2) : 0;
+                      return spo2B - spo2A; // High to low
+                    });
+                  } else if (value === 'spo2-low') {
+                    sorted = sorted.sort((a, b) => {
+                      const spo2A = a.spo2 ? parseInt(a.spo2) : 0;
+                      const spo2B = b.spo2 ? parseInt(b.spo2) : 0;
+                      return spo2A - spo2B; // Low to high
+                    });
+                  }
+                  // Temperature sorting
+                  else if (value === 'temp-high') {
+                    sorted = sorted.sort((a, b) => {
+                      const tempA = a.temperature || 0;
+                      const tempB = b.temperature || 0;
+                      return tempB - tempA; // High to low
+                    });
+                  } else if (value === 'temp-low') {
+                    sorted = sorted.sort((a, b) => {
+                      const tempA = a.temperature || 0;
+                      const tempB = b.temperature || 0;
+                      return tempA - tempB; // Low to high
+                    });
+                  }
+                  // Body measurements sorting
+                  else if (value === 'height-high') {
+                    sorted = sorted.sort((a, b) => {
+                      const heightA = a.height || 0;
+                      const heightB = b.height || 0;
+                      return heightB - heightA; // High to low
+                    });
+                  } else if (value === 'height-low') {
+                    sorted = sorted.sort((a, b) => {
+                      const heightA = a.height || 0;
+                      const heightB = b.height || 0;
+                      return heightA - heightB; // Low to high
+                    });
+                  } else if (value === 'weight-high') {
+                    sorted = sorted.sort((a, b) => {
+                      const weightA = a.weight || 0;
+                      const weightB = b.weight || 0;
+                      return weightB - weightA; // High to low
+                    });
+                  } else if (value === 'weight-low') {
+                    sorted = sorted.sort((a, b) => {
+                      const weightA = a.weight || 0;
+                      const weightB = b.weight || 0;
+                      return weightA - weightB; // Low to high
+                    });
+                  }
+                  
+                  setFilteredData(sorted);
+                }}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="date-newest">Date (Newest First)</SelectItem>
+                  <SelectItem value="date-oldest">Date (Oldest First)</SelectItem>
+                  
+                  {/* Show blood pressure sorting options when on BP tab or all tab */}
+                  {(activeTab === "all" || activeTab === "blood-pressure") && (
+                    <>
+                      <SelectItem value="systolic-high">Systolic (High to Low)</SelectItem>
+                      <SelectItem value="systolic-low">Systolic (Low to High)</SelectItem>
+                      <SelectItem value="diastolic-high">Diastolic (High to Low)</SelectItem>
+                      <SelectItem value="diastolic-low">Diastolic (Low to High)</SelectItem>
+                    </>
+                  )}
+                  
+                  {/* Show pulse sorting options when on pulse tab or all tab */}
+                  {(activeTab === "all" || activeTab === "pulse") && (
+                    <>
+                      <SelectItem value="pulse-high">Pulse Rate (High to Low)</SelectItem>
+                      <SelectItem value="pulse-low">Pulse Rate (Low to High)</SelectItem>
+                    </>
+                  )}
+                  
+                  {/* Show SpO2 sorting options when on SpO2 tab or all tab */}
+                  {(activeTab === "all" || activeTab === "spo2") && (
+                    <>
+                      <SelectItem value="spo2-high">SpO2 (High to Low)</SelectItem>
+                      <SelectItem value="spo2-low">SpO2 (Low to High)</SelectItem>
+                    </>
+                  )}
+                  
+                  {/* Show temperature sorting options when on temperature tab or all tab */}
+                  {(activeTab === "all" || activeTab === "temperature") && (
+                    <>
+                      <SelectItem value="temp-high">Temperature (High to Low)</SelectItem>
+                      <SelectItem value="temp-low">Temperature (Low to High)</SelectItem>
+                    </>
+                  )}
+                  
+                  {/* Show body measurements sorting options when on body tab or all tab */}
+                  {(activeTab === "all" || activeTab === "body") && (
+                    <>
+                      <SelectItem value="height-high">Height (High to Low)</SelectItem>
+                      <SelectItem value="height-low">Height (Low to High)</SelectItem>
+                      <SelectItem value="weight-high">Weight (High to Low)</SelectItem>
+                      <SelectItem value="weight-low">Weight (Low to High)</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+              
+              <Select
+                onValueChange={(value) => {
+                  setStatusFilter(value);
+                  
+                  // Filter data based on status
+                  if (value === 'all') {
+                    setFilteredData(chartData);
+                    return;
+                  }
+                  
+                  const filtered = chartData.filter(item => {
+                    // Determine status for each vital
+                    const bpStatus = item.systolic && item.diastolic ? 
+                      (item.systolic >= 140 || item.diastolic >= 90) ? 'high' :
+                      (item.systolic <= 90 || item.diastolic <= 60) ? 'low' : 'normal' : null;
+                      
+                    const pulseStatus = item.pulse ? 
+                      (item.pulse > 100) ? 'high' :
+                      (item.pulse < 60) ? 'low' : 'normal' : null;
+                      
+                    const spo2Status = item.spo2 ? 
+                      (parseInt(item.spo2) < 95) ? 'low' : 'normal' : null;
+                      
+                    const tempStatus = item.temperature ? 
+                      (item.temperature > 37.5) ? 'high' :
+                      (item.temperature < 36.0) ? 'low' : 'normal' : null;
+                    
+                    // Determine overall status
+                    const hasAbnormal = [bpStatus, pulseStatus, spo2Status, tempStatus].some(
+                      status => status === 'high' || status === 'low'
+                    );
+                    
+                    return value === 'abnormal' ? hasAbnormal : !hasAbnormal;
+                  });
+                  
+                  setFilteredData(filtered);
+                }}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Readings</SelectItem>
+                  <SelectItem value="abnormal">Abnormal Only</SelectItem>
+                  <SelectItem value="normal">Normal Only</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Template</TableHead>
-                    {(activeTab === "all" || activeTab === "blood-pressure") && (
-                      <>
-                        <TableHead>Systolic</TableHead>
-                        <TableHead>Diastolic</TableHead>
-                      </>
-                    )}
-                    {(activeTab === "all" || activeTab === "pulse") && (
-                      <TableHead>Pulse Rate</TableHead>
-                    )}
-                    {(activeTab === "all" || activeTab === "spo2") && (
-                      <TableHead>SpO2</TableHead>
-                    )}
-                    {(activeTab === "all" || activeTab === "temperature") && (
-                      <TableHead>Temperature</TableHead>
-                    )}
-                    {(activeTab === "all" || activeTab === "body") && (
-                      <>
-                        <TableHead>Height</TableHead>
-                        <TableHead>Weight</TableHead>
-                      </>
-                    )}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {chartData.map((item) => (
-                    <TableRow key={item.uid}>
-                      <TableCell>
-                        {new Date(item.start_time || '').toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{item.templateId}</Badge>
-                      </TableCell>
+          
+          <CardContent className="pt-4">
+            <div className="rounded-md border overflow-hidden">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-muted/50">
+                    <TableRow>
+                      <TableHead className="font-bold">Date</TableHead>
+                      <TableHead className="font-bold">Template</TableHead>
                       {(activeTab === "all" || activeTab === "blood-pressure") && (
                         <>
-                          <TableCell>{item.systolic ? `${item.systolic} mmHg` : '-'}</TableCell>
-                          <TableCell>{item.diastolic ? `${item.diastolic} mmHg` : '-'}</TableCell>
+                          <TableHead className="font-bold">Systolic</TableHead>
+                          <TableHead className="font-bold">Diastolic</TableHead>
                         </>
                       )}
                       {(activeTab === "all" || activeTab === "pulse") && (
-                        <TableCell>{item.pulse ? `${item.pulse} bpm` : '-'}</TableCell>
+                        <TableHead className="font-bold">Pulse Rate</TableHead>
                       )}
                       {(activeTab === "all" || activeTab === "spo2") && (
-                        <TableCell>{item.spo2 ? `${item.spo2}%` : '-'}</TableCell>
+                        <TableHead className="font-bold">SpO2</TableHead>
                       )}
                       {(activeTab === "all" || activeTab === "temperature") && (
-                        <TableCell>{item.temperature ? `${item.temperature} °C` : '-'}</TableCell>
+                        <TableHead className="font-bold">Temperature</TableHead>
                       )}
                       {(activeTab === "all" || activeTab === "body") && (
                         <>
-                          <TableCell>{item.height ? `${item.height} cm` : '-'}</TableCell>
-                          <TableCell>{item.weight ? `${item.weight} kg` : '-'}</TableCell>
+                          <TableHead className="font-bold">Height</TableHead>
+                          <TableHead className="font-bold">Weight</TableHead>
                         </>
                       )}
+                      <TableHead className="font-bold">Status</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {(filteredData.length > 0 ? filteredData : chartData).map((item, index) => {
+                      // Determine status for each vital
+                      const bpStatus = item.systolic && item.diastolic ? 
+                        (item.systolic >= 140 || item.diastolic >= 90) ? 'high' :
+                        (item.systolic <= 90 || item.diastolic <= 60) ? 'low' : 'normal' : null;
+                        
+                      const pulseStatus = item.pulse ? 
+                        (item.pulse > 100) ? 'high' :
+                        (item.pulse < 60) ? 'low' : 'normal' : null;
+                        
+                      const spo2Status = item.spo2 ? 
+                        (parseInt(item.spo2) < 90) ? 'low' : 'normal' : null;
+                        
+                      const tempStatus = item.temperature ? 
+                        (item.temperature > 37.5) ? 'high' :
+                        (item.temperature < 36.0) ? 'low' : 'normal' : null;
+                      
+                      // Determine overall status
+                      const hasAbnormal = [bpStatus, pulseStatus, spo2Status, tempStatus].some(
+                        status => status === 'high' || status === 'low'
+                      );
+                      
+                      const rowClass = hasAbnormal ? 
+                        'bg-red-50/50 hover:bg-red-50' : 
+                        index % 2 === 0 ? 'bg-white hover:bg-muted/20' : 'bg-muted/10 hover:bg-muted/30';
+                      
+                      return (
+                        <TableRow key={item.uid} className={rowClass}>
+                          <TableCell className="font-medium">
+                            <div className="flex flex-col">
+                              <span>{new Date(item.start_time || '').toLocaleDateString()}</span>
+                              <span className="text-xs text-muted-foreground">{new Date(item.start_time || '').toLocaleTimeString()}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="font-mono text-xs">{item.templateId}</Badge>
+                          </TableCell>
+                          {(activeTab === "all" || activeTab === "blood-pressure") && (
+                            <>
+                              <TableCell className={
+                                item.systolic ? 
+                                  (item.systolic >= 140 ? 'text-red-600 font-semibold' : 
+                                   item.systolic <= 90 ? 'text-amber-600 font-semibold' : '') : ''
+                              }>
+                                {item.systolic ? `${item.systolic} mmHg` : '-'}
+                              </TableCell>
+                              <TableCell className={
+                                item.diastolic ? 
+                                  (item.diastolic >= 90 ? 'text-red-600 font-semibold' : 
+                                   item.diastolic <= 60 ? 'text-amber-600 font-semibold' : '') : ''
+                              }>
+                                {item.diastolic ? `${item.diastolic} mmHg` : '-'}
+                              </TableCell>
+                            </>
+                          )}
+                          {(activeTab === "all" || activeTab === "pulse") && (
+                            <TableCell className={
+                              item.pulse ? 
+                                (item.pulse > 100 ? 'text-red-600 font-semibold' : 
+                                 item.pulse < 60 ? 'text-amber-600 font-semibold' : '') : ''
+                            }>
+                              {item.pulse ? `${item.pulse} bpm` : '-'}
+                            </TableCell>
+                          )}
+                          {(activeTab === "all" || activeTab === "spo2") && (
+                            <TableCell className={
+                              item.spo2 ? 
+                                (parseInt(item.spo2) < 95 ? 'text-red-600 font-semibold' : '') : ''
+                            }>
+                              {item.spo2 ? `${item.spo2}%` : '-'}
+                            </TableCell>
+                          )}
+                          {(activeTab === "all" || activeTab === "temperature") && (
+                            <TableCell className={
+                              item.temperature ? 
+                                (item.temperature > 37.5 ? 'text-red-600 font-semibold' : 
+                                 item.temperature < 36.0 ? 'text-amber-600 font-semibold' : '') : ''
+                            }>
+                              {item.temperature ? `${item.temperature} °C` : '-'}
+                            </TableCell>
+                          )}
+                          {(activeTab === "all" || activeTab === "body") && (
+                            <>
+                              <TableCell>{item.height ? `${item.height} cm` : '-'}</TableCell>
+                              <TableCell>{item.weight ? `${item.weight} kg` : '-'}</TableCell>
+                            </>
+                          )}
+                          <TableCell>
+                            {hasAbnormal ? (
+                              <Badge variant="outline" className="bg-red-100 text-red-800 border-red-300">
+                                Abnormal
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                                Normal
+                              </Badge>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+            
+            <div className="flex justify-between items-center mt-4">
+              <div className="text-sm text-muted-foreground">
+                Showing {chartData.length} records
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" disabled>Previous</Button>
+                <Button variant="outline" size="sm" disabled>Next</Button>
+              </div>
             </div>
           </CardContent>
         </Card>
