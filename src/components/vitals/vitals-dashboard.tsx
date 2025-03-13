@@ -188,6 +188,15 @@ export function VitalsDashboard({
     console.log("Data to use:", dataToUse);
   }, [showAllData, allCompositions, chartData, dataToUse]);
 
+  // Reset filtered data when data source changes
+  useEffect(() => {
+    // Reset filters when data source changes
+    setFilteredData([]);
+    setSearchTerm("");
+    setSortBy("");
+    setStatusFilter("all");
+  }, [showAllData, dataToUse]);
+
   useEffect(() => {
     // Add some dummy data for testing
     const dummyData: ChartDataItem[] = [
